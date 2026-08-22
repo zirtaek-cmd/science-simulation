@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>눈의 조절 작용</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+/* ============================================================
+   공용 템플릿 (SHARED TEMPLATE) — cell_size_simulation.html 기준
+   ============================================================ */
+:root{
+  --bg: #EFECE4;
+  --paper: #FBFAF6;
+  --ink: #21262B;
+  --ink-soft: #62696F;
+  --line: #D9D3C4;
+  --core: #F4EEDD;
+  --accent: #2F8F94;
+  --accent-dark: #1F6669;
+  --warn: #B5523B;
+  --gold: #C2932B;
+  --mono: 'JetBrains Mono', 'Pretendard', monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Pretendard', -apple-system, sans-serif;
+  padding:28px 16px 60px;
+  line-height:1.5;
+}
+.wrap{max-width:1080px;margin:0 auto;}
+header{margin-bottom:22px;}
+.eyebrow{
+  font-family:var(--mono);font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent-dark);margin:0 0 6px;
+}
+h1{font-size:26px;margin:0 0 8px;font-weight:800;letter-spacing:-0.01em;}
+.lead{color:var(--ink-soft);font-size:14.5px;max-width:720px;margin:0;}
+h2{font-size:18px;margin:0 0 4px;font-weight:800;letter-spacing:-0.01em;}
+.sec-sub{color:var(--ink-soft);font-size:13px;margin:0 0 16px;}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px 18px 20px;}
+section.block{margin-top:26px;}
+.ctrl label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
+.ctrl .val{font-family:var(--mono);color:var(--ink);font-weight:700;}
+input[type='range']{
+  -webkit-appearance:none;width:100%;height:4px;border-radius:2px;
+  background:var(--line);outline:none;
+}
+input[type='range']::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--accent);border:2px solid var(--paper);
+  box-shadow:0 0 0 1px var(--accent);cursor:pointer;
+}
+input[type='range']::-moz-range-thumb{
+  width:16px;height:16px;border-radius:50%;background:var(--accent);
+  border:2px solid var(--paper);cursor:pointer;
+}
+.buttons{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px;}
+button{
+  font-family:'Pretendard',sans-serif;font-weight:700;font-size:13px;
+  border-radius:9px;border:1px solid var(--line);background:var(--paper);
+  color:var(--ink-soft);padding:8px 14px;cursor:pointer;transition:opacity .15s;
+}
+button.solid{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+button.on{background:var(--gold);color:var(--ink);border-color:var(--gold);}
+button:hover{opacity:.82;}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.explain{
+  font-size:13.5px;color:var(--ink-soft);background:var(--core);
+  border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px;
+}
+.explain b{color:var(--ink);}
+.readout{
+  margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;
+  font-family:var(--mono);font-size:12px;
+}
+.readout .item{display:flex;justify-content:space-between;gap:8px;}
+.readout .item span:first-child{color:var(--ink-soft);}
+.readout .item span:last-child{font-weight:700;}
+footer{margin-top:30px;font-size:11.5px;color:var(--ink-soft);text-align:center;}
+
+.stage{display:grid;grid-template-columns:1.55fr 1fr;gap:18px;align-items:start;}
+.svg-box{background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+.svg-box svg{display:block;width:100%;height:auto;}
+@media (max-width:860px){ .stage{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Eye Accommodation · 2D</p>
+    <h1>눈의 조절 작용</h1>
+    <p class="lead">
+      눈은 주변 밝기와 물체와의 거리에 따라 스스로 조절 작용을 합니다.
+      아래 두 가지를 따로 조절해 보며 눈에서 어떤 변화가 일어나는지 관찰해 보세요.
+    </p>
+  </header>
+
+  <!-- ================= 1. 주변 밝기 ================= -->
+  <section class="block card">
+    <h2>① 주변 밝기에 따른 조절 작용</h2>
+    <p class="sec-sub">홍채가 동공의 크기를 바꾸어 눈으로 들어오는 빛의 양을 조절합니다.</p>
+
+    <div class="stage">
+      <div class="svg-box">
+        <svg id="svg-bright" viewBox="0 0 620 340" xmlns="http://www.w3.org/2000/svg"
+             role="img" aria-label="빛이 동공을 통해 눈으로 들어오는 모습">
+          <rect id="bg-bright" x="0" y="0" width="620" height="340" fill="#F4EEDD" />
+
+          <!-- 바깥 빛 (직선 광선) -->
+          <g id="rays-out" stroke="#C2932B" stroke-width="2" stroke-linecap="round"></g>
+          <!-- 눈 안으로 들어온 빛 -->
+          <g id="rays-in" stroke="#C2932B" stroke-width="2" stroke-linecap="round"></g>
+
+          <!-- 안구 뒷부분(망막) -->
+          <path d="M 300 40 A 132.8 132.8 0 1 1 300 300" fill="#F0C9A8" fill-opacity="0.5"
+                stroke="#D9836F" stroke-width="7" />
+
+          <!-- 각막 -->
+          <path d="M 262 62 Q 196 170 262 278" fill="#DCEDF5" fill-opacity="0.35"
+                stroke="#8FBFD4" stroke-width="6" />
+
+          <!-- 홍채 -->
+          <path id="b-iris-top" d="" fill="#8B5A2B" />
+          <path id="b-iris-bot" d="" fill="#8B5A2B" />
+
+          <!-- 수정체 -->
+          <ellipse cx="330" cy="170" rx="26" ry="60" fill="#BFE3F2" fill-opacity="0.8"
+                   stroke="#7FB8CE" stroke-width="2.5" />
+
+          <g font-family="Pretendard, sans-serif" font-size="12.5" fill="#21262B">
+            <text x="298" y="44" text-anchor="middle">홍채</text>
+            <text x="243" y="174" text-anchor="middle">동공</text>
+            <text x="330" y="252" text-anchor="middle">수정체</text>
+            <text x="88" y="26" fill="#62696F" font-size="12">바깥에서 오는 빛</text>
+          </g>
+        </svg>
+      </div>
+
+      <div>
+        <div class="ctrl">
+          <label for="s-bright">주변 밝기 &nbsp;<span class="val" id="v-bright">보통</span></label>
+          <input type="range" id="s-bright" min="0" max="100" value="50" step="1" />
+        </div>
+        <div class="buttons">
+          <button id="btn-bright">☀ 밝을 때</button>
+          <button id="btn-dark">☾ 어두울 때</button>
+        </div>
+
+        <div class="explain">
+          <p id="st-bright" style="margin:0;">주변 밝기를 조절해 보세요.</p>
+          <div class="readout">
+            <div class="item"><span>바깥 빛의 양</span><span id="r-outer">-</span></div>
+            <div class="item"><span>홍채</span><span id="r-iris">-</span></div>
+            <div class="item"><span>동공 크기</span><span id="r-pupil">-</span></div>
+            <div class="item"><span>들어온 빛의 양</span><span id="r-inner">-</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 2. 물체와의 거리 ================= -->
+  <section class="block card">
+    <h2>② 물체와의 거리에 따른 조절 작용</h2>
+    <p class="sec-sub">물체와의 거리에 따라 수정체의 두께가 바뀌어 망막에 또렷한 상이 맺히게 합니다.</p>
+
+    <div class="stage">
+      <div class="svg-box">
+        <svg id="svg-dist" viewBox="0 0 660 400" xmlns="http://www.w3.org/2000/svg"
+             role="img" aria-label="물체에서 나온 빛이 수정체에서 굴절되어 상이 맺히는 모습">
+          <rect x="0" y="0" width="660" height="400" fill="#F9F6EC" />
+
+          <!-- 광축 -->
+          <line x1="20" y1="200" x2="640" y2="200" stroke="#D9D3C4" stroke-width="1.5" stroke-dasharray="6 6" />
+
+          <!-- 안구 -->
+          <circle cx="470" cy="200" r="110" fill="#F0C9A8" fill-opacity="0.45"
+                  stroke="#E8E2D2" stroke-width="7" />
+          <path d="M 470 90 A 110 110 0 0 1 470 310" fill="none" stroke="#D9836F" stroke-width="7" />
+
+          <!-- 시각신경 -->
+          <path d="M 578 218 L 622 232 L 622 262 L 574 240 Z" fill="#E8D98F" stroke="#CBBB6E" stroke-width="1.5" />
+
+          <!-- 빛 경로 -->
+          <g id="d-rays" stroke="#C2932B" stroke-width="2" fill="none" stroke-linecap="round"></g>
+
+          <!-- 수정체 -->
+          <path id="d-lens" d="" fill="#BFE3F2" fill-opacity="0.85" stroke="#7FB8CE" stroke-width="2.5" />
+
+          <!-- 물체 (화살표) -->
+          <g id="d-object"></g>
+          <!-- 상 (거꾸로 맺힌 화살표) -->
+          <g id="d-image"></g>
+
+          <g font-family="Pretendard, sans-serif" font-size="12.5" fill="#21262B">
+            <text x="420" y="88" text-anchor="middle">수정체</text>
+            <text x="602" y="152" text-anchor="middle">망막</text>
+          </g>
+          <text id="d-imglabel" x="0" y="0" text-anchor="middle"
+                font-family="Pretendard, sans-serif" font-size="12" fill="#B5523B"></text>
+          <text id="d-distlabel" x="120" y="368" text-anchor="middle"
+                font-family="JetBrains Mono, Pretendard, monospace" font-size="12" fill="#62696F"></text>
+        </svg>
+      </div>
+
+      <div>
+        <div class="ctrl">
+          <label for="s-dist">물체와의 거리 &nbsp;<span class="val" id="v-dist">보통</span></label>
+          <input type="range" id="s-dist" min="0" max="100" value="50" step="1" />
+        </div>
+        <div class="buttons">
+          <button id="btn-near">가까운 물체</button>
+          <button id="btn-far">먼 물체</button>
+        </div>
+        <div class="buttons">
+          <button id="btn-acc" class="solid on">조절 작용 켬</button>
+        </div>
+
+        <div class="explain">
+          <p id="st-dist" style="margin:0;">물체와의 거리를 조절해 보세요.</p>
+          <div class="readout">
+            <div class="item"><span>수정체 두께</span><span id="r-lens">-</span></div>
+            <div class="item"><span>상이 맺히는 곳</span><span id="r-img">-</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>눈 구조 시뮬레이션 · 3부 — 눈의 조절 작용</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   ① 주변 밝기에 따른 조절 작용
+   - 바깥 빛은 평행한 직선 광선으로 표현. 밝을수록 광선이 촘촘해진다.
+   - 홍채가 확장/수축하여 동공 크기가 변하고,
+     동공을 통과한 광선만 눈 안으로 들어온다.
+   ============================================================ */
+
+const B = {
+  AXIS: 170,
+  IRIS_X: 262,      // 홍채가 놓인 x
+  IRIS_OUTER: 124,  // 홍채 바깥 끝(축에서의 거리)
+  FOCUS_X: 452,     // 광선이 모이는 지점(망막 쪽)
+};
+
+const be = {
+  s: document.getElementById('s-bright'),
+  v: document.getElementById('v-bright'),
+  irisTop: document.getElementById('b-iris-top'),
+  irisBot: document.getElementById('b-iris-bot'),
+  raysOut: document.getElementById('rays-out'),
+  raysIn: document.getElementById('rays-in'),
+  bg: document.getElementById('bg-bright'),
+  st: document.getElementById('st-bright'),
+  rOuter: document.getElementById('r-outer'),
+  rIris: document.getElementById('r-iris'),
+  rPupil: document.getElementById('r-pupil'),
+  rInner: document.getElementById('r-inner'),
+};
+
+const lerp = (a, b, t) => a + (b - a) * t;
+
+function renderBright() {
+  const t = +be.s.value / 100;          // 1 = 밝음
+
+  const pupilR = lerp(52, 16, t);       // 동공 반지름
+  const spacing = lerp(26, 8, t);       // 바깥 광선 간격 (밝을수록 촘촘)
+
+  // 홍채: 바깥 끝에서 동공 가장자리까지
+  be.irisTop.setAttribute('d',
+    `M ${B.IRIS_X - 8} ${B.AXIS - B.IRIS_OUTER} L ${B.IRIS_X + 8} ${B.AXIS - B.IRIS_OUTER} ` +
+    `L ${B.IRIS_X + 5} ${B.AXIS - pupilR} L ${B.IRIS_X - 5} ${B.AXIS - pupilR} Z`);
+  be.irisBot.setAttribute('d',
+    `M ${B.IRIS_X - 8} ${B.AXIS + B.IRIS_OUTER} L ${B.IRIS_X + 8} ${B.AXIS + B.IRIS_OUTER} ` +
+    `L ${B.IRIS_X + 5} ${B.AXIS + pupilR} L ${B.IRIS_X - 5} ${B.AXIS + pupilR} Z`);
+
+  // 광선 생성
+  let outHtml = '';
+  let inHtml = '';
+  let outCount = 0;
+  let inCount = 0;
+
+  for (let off = -B.IRIS_OUTER; off <= B.IRIS_OUTER + 0.01; off += spacing) {
+    const y = B.AXIS + off;
+    outCount++;
+    const passes = Math.abs(off) < pupilR - 3;
+    const stopX = passes ? B.IRIS_X - 4 : B.IRIS_X - 10;
+    outHtml += `<line x1="26" y1="${y.toFixed(1)}" x2="${stopX}" y2="${y.toFixed(1)}" opacity="0.85" />`;
+    if (passes) {
+      inCount++;
+      // 동공을 지나 수정체에서 굴절되어 망막 쪽으로 모임
+      inHtml += `<path d="M ${B.IRIS_X + 4} ${y.toFixed(1)} L 330 ${y.toFixed(1)} L ${B.FOCUS_X} ${B.AXIS}" fill="none" opacity="0.9" />`;
+    }
+  }
+  be.raysOut.innerHTML = outHtml;
+  be.raysIn.innerHTML = inHtml;
+
+  // 배경 밝기
+  const bgShade = Math.round(lerp(214, 250, t));
+  be.bg.setAttribute('fill', `rgb(${bgShade}, ${bgShade - 6}, ${Math.max(0, bgShade - 24)})`);
+
+  // 텍스트
+  const label = t > 0.66 ? '밝음' : t < 0.34 ? '어두움' : '보통';
+  be.v.textContent = label;
+
+  if (t > 0.55) {
+    be.st.innerHTML = '주변이 <b>밝을 때</b> — 눈으로 오는 빛이 많아지면 홍채가 확장되면서 동공의 크기가 작아져, 눈으로 들어오는 빛의 양이 감소한다.';
+  } else if (t < 0.45) {
+    be.st.innerHTML = '주변이 <b>어두울 때</b> — 눈으로 오는 빛이 적어지면 홍채가 수축되면서 동공의 크기가 커져, 눈으로 들어오는 빛의 양이 증가한다.';
+  } else {
+    be.st.innerHTML = '주변 밝기가 <b>보통</b>일 때의 상태입니다. 슬라이더를 좌우로 움직여 보세요.';
+  }
+
+  be.rOuter.textContent = `광선 ${outCount}개`;
+  be.rIris.textContent = t > 0.55 ? '확장' : t < 0.45 ? '수축' : '보통';
+  be.rPupil.textContent = t > 0.55 ? '작아짐' : t < 0.45 ? '커짐' : '보통';
+  be.rInner.textContent = `광선 ${inCount}개`;
+}
+
+be.s.addEventListener('input', renderBright);
+document.getElementById('btn-bright').addEventListener('click', () => { be.s.value = 96; renderBright(); });
+document.getElementById('btn-dark').addEventListener('click', () => { be.s.value = 4; renderBright(); });
+
+/* ============================================================
+   ② 물체와의 거리에 따른 조절 작용
+   - 물체(화살표)가 가까워지거나 멀어지면 수정체 두께가 변화
+   - 얇은 렌즈 식 1/f = 1/do + 1/di 로 상이 맺히는 위치를 계산
+   - '조절 작용 끔'으로 두면 수정체 두께가 고정되어
+     상이 망막에서 벗어나는 것을 볼 수 있다
+   ============================================================ */
+
+const D = {
+  AXIS: 200,
+  LENS_X: 420,      // 수정체 위치
+  RETINA_DI: 155,   // 수정체 → 망막 거리
+  OBJ_NEAR_X: 240,  // 가장 가까울 때 물체 x
+  OBJ_FAR_X: 40,    // 가장 멀 때 물체 x
+  OBJ_H: 65,        // 물체·수정체 위아래 길이(고정, 서로 동일)
+};
+
+const de = {
+  s: document.getElementById('s-dist'),
+  v: document.getElementById('v-dist'),
+  lens: document.getElementById('d-lens'),
+  rays: document.getElementById('d-rays'),
+  obj: document.getElementById('d-object'),
+  img: document.getElementById('d-image'),
+  imgLabel: document.getElementById('d-imglabel'),
+  distLabel: document.getElementById('d-distlabel'),
+  st: document.getElementById('st-dist'),
+  rLens: document.getElementById('r-lens'),
+  rImg: document.getElementById('r-img'),
+  btnAcc: document.getElementById('btn-acc'),
+};
+
+let accommodationOn = true;
+
+// 조절 작용을 끈 상태에서 고정되는 초점 거리 = 가장 가까운 물체에 맞춰진 두꺼운 수정체
+const DO_NEAR = D.LENS_X - D.OBJ_NEAR_X;
+const F_FIXED = 1 / (1 / DO_NEAR + 1 / D.RETINA_DI);
+
+function renderDist() {
+  const t = +de.s.value / 100;                        // 1 = 멂
+  const objX = lerp(D.OBJ_NEAR_X, D.OBJ_FAR_X, t);
+  const doDist = D.LENS_X - objX;                     // 물체 - 수정체 거리
+
+  // 초점 거리와 상 거리
+  let f, di;
+  if (accommodationOn) {
+    di = D.RETINA_DI;                                 // 항상 망막에 맺힘
+    f = 1 / (1 / doDist + 1 / di);
+  } else {
+    f = F_FIXED;
+    const inv = 1 / f - 1 / doDist;
+    di = inv > 0.0006 ? 1 / inv : 9999;               // 발산하면 매우 큰 값
+  }
+  const power = 1 / f;                                // 굴절력 → 수정체 두께
+
+  // ---- 수정체 ----
+  const pMin = 1 / (1 / (D.LENS_X - D.OBJ_FAR_X) + 1 / D.RETINA_DI); // 가장 얇을 때 f
+  const pMax = F_FIXED;                                              // 가장 두꺼울 때 f
+  const thickT = (power - 1 / pMin) / (1 / pMax - 1 / pMin);         // 0(얇음) ~ 1(두꺼움)
+  const tc = Math.max(0, Math.min(1, thickT));
+  const lensHalfW = lerp(18, 40, tc);
+  const lensHalfH = D.OBJ_H;      // 위아래 길이는 고정, 두께(폭)만 조절
+
+  de.lens.setAttribute('d',
+    `M ${D.LENS_X} ${D.AXIS - lensHalfH} ` +
+    `Q ${D.LENS_X - lensHalfW * 2} ${D.AXIS} ${D.LENS_X} ${D.AXIS + lensHalfH} ` +
+    `Q ${D.LENS_X + lensHalfW * 2} ${D.AXIS} ${D.LENS_X} ${D.AXIS - lensHalfH} Z`);
+
+  // ---- 물체 (수정체와 같은 위아래 길이의 화살표) ----
+  const objTopY = D.AXIS - D.OBJ_H;
+  const objBotY = D.AXIS + D.OBJ_H;
+  de.obj.innerHTML =
+    `<line x1="${objX}" y1="${objBotY}" x2="${objX}" y2="${objTopY}" stroke="#2F8F94" stroke-width="3.5" stroke-linecap="round" />` +
+    `<path d="M ${objX - 8} ${objTopY + 10} L ${objX} ${objTopY - 2} L ${objX + 8} ${objTopY + 10} Z" fill="#2F8F94" />`;
+
+  // ---- 빛 경로 ----
+  // 물체 위/아래 끝에서 나온 빛이 수정체까지는 광축과 평행하게 나아가다가(같은 높이로 입사)
+  // 수정체에서 굴절되어 상의 대응점(뒤집힌 위치)으로 모인다
+  const magFactor = di / doDist;                      // 배율
+  const imgX = D.LENS_X + di;
+  const drawX = Math.min(imgX, 648);                  // 화면 밖으로 나가면 잘라서 표시
+  const hi = D.OBJ_H * magFactor;                     // 위쪽 점이 맺히는 상의 높이(뒤집힘) — 상 그리기에 재사용
+  const topImgY = D.AXIS + D.OBJ_H * magFactor;       // 물체 위쪽 점 → 상은 아래쪽으로 뒤집힘
+  const botImgY = D.AXIS - D.OBJ_H * magFactor;       // 물체 아래쪽 점 → 상은 위쪽으로 뒤집힘
+  const diClamped = Math.max(di, 1);
+  const along = (apertureY, targetY) =>
+    apertureY + (targetY - apertureY) * ((drawX - D.LENS_X) / diClamped);
+
+  let rays = '';
+  // 물체 위쪽 점 → 수정체 윗부분과 같은 높이로 평행하게 입사 → 굴절되어 상의 아래쪽으로 모임
+  rays += `<path d="M ${objX} ${objTopY} L ${D.LENS_X} ${objTopY} L ${drawX.toFixed(1)} ${along(objTopY, topImgY).toFixed(1)}" opacity="0.9" />`;
+  // 물체 아래쪽 점 → 수정체 아랫부분과 같은 높이로 평행하게 입사 → 굴절되어 상의 위쪽으로 모임
+  rays += `<path d="M ${objX} ${objBotY} L ${D.LENS_X} ${objBotY} L ${drawX.toFixed(1)} ${along(objBotY, botImgY).toFixed(1)}" stroke="#2F8F94" stroke-dasharray="5 4" opacity="0.6" />`;
+  de.rays.innerHTML = rays;
+
+  // ---- 상 ----
+  const onRetina = Math.abs(di - D.RETINA_DI) < 6;
+  if (imgX <= 620) {
+    const imgColor = onRetina ? '#B5523B' : '#9A8F86';
+    de.img.innerHTML =
+      `<line x1="${imgX.toFixed(1)}" y1="${(D.AXIS - hi).toFixed(1)}" x2="${imgX.toFixed(1)}" y2="${(D.AXIS + hi).toFixed(1)}" stroke="${imgColor}" stroke-width="3.5" stroke-linecap="round" />` +
+      `<path d="M ${(imgX - 8).toFixed(1)} ${(D.AXIS + hi - 10).toFixed(1)} L ${imgX.toFixed(1)} ${(D.AXIS + hi + 2).toFixed(1)} L ${(imgX + 8).toFixed(1)} ${(D.AXIS + hi - 10).toFixed(1)} Z" fill="${imgColor}" />`;
+    de.imgLabel.setAttribute('x', imgX.toFixed(1));
+    de.imgLabel.setAttribute('y', (D.AXIS + hi + 22).toFixed(1));
+    de.imgLabel.textContent = onRetina ? '망막에 또렷한 상' : '상이 망막에 맺히지 않음';
+  } else {
+    de.img.innerHTML = '';
+    de.imgLabel.setAttribute('x', 560);
+    de.imgLabel.setAttribute('y', 340);
+    de.imgLabel.textContent = '상이 망막 훨씬 뒤에 맺힘';
+  }
+
+  // ---- 거리 라벨 ----
+  de.distLabel.setAttribute('x', objX.toFixed(1));
+  de.distLabel.textContent = t > 0.66 ? '먼 물체' : t < 0.34 ? '가까운 물체' : '보통 거리';
+
+  // ---- 텍스트 ----
+  de.v.textContent = t > 0.66 ? '멂' : t < 0.34 ? '가까움' : '보통';
+
+  if (!accommodationOn) {
+    de.st.innerHTML = '<b>조절 작용을 끈 상태</b> — 수정체 두께가 고정되어 있어, 물체와의 거리가 달라지면 상이 망막에서 벗어나 물체가 흐릿하게 보인다.';
+  } else if (t < 0.45) {
+    de.st.innerHTML = '물체가 <b>가까울 때</b> — 수정체가 두꺼워진다. 빛이 더 많이 굴절되어 망막에 또렷한 상이 맺힌다.';
+  } else if (t > 0.55) {
+    de.st.innerHTML = '물체가 <b>멀 때</b> — 수정체가 얇아진다. 빛이 덜 굴절되어 망막에 또렷한 상이 맺힌다.';
+  } else {
+    de.st.innerHTML = '물체와의 거리가 <b>보통</b>일 때의 상태입니다. 슬라이더를 좌우로 움직여 보세요.';
+  }
+
+  de.rLens.textContent = tc > 0.55 ? '두꺼움' : tc < 0.45 ? '얇음' : '보통';
+  de.rImg.textContent = onRetina ? '망막 위' : (di > D.RETINA_DI ? '망막 뒤' : '망막 앞');
+}
+
+de.s.addEventListener('input', renderDist);
+document.getElementById('btn-near').addEventListener('click', () => { de.s.value = 4; renderDist(); });
+document.getElementById('btn-far').addEventListener('click', () => { de.s.value = 96; renderDist(); });
+de.btnAcc.addEventListener('click', () => {
+  accommodationOn = !accommodationOn;
+  de.btnAcc.textContent = accommodationOn ? '조절 작용 켬' : '조절 작용 끔';
+  de.btnAcc.classList.toggle('on', accommodationOn);
+  renderDist();
+});
+
+renderBright();
+renderDist();
+</script>
+
+</body>
+</html>
