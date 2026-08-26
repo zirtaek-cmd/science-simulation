@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>세포 크기와 물질 교환 시뮬레이션</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root{
+    --bg: #EFECE4;
+    --paper: #FBFAF6;
+    --ink: #21262B;
+    --ink-soft: #62696F;
+    --line: #D9D3C4;
+    --absorbed: #2F8F94;
+    --absorbed-dark: #1F6669;
+    --core: #F4EEDD;
+    --warn: #B5523B;
+    --split: #C2932B;
+    --mono: 'JetBrains Mono', 'Pretendard', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Pretendard', -apple-system, sans-serif;
+    padding:28px 16px 60px;
+    line-height:1.5;
+  }
+  .wrap{max-width:1080px;margin:0 auto;}
+
+  header{margin-bottom:22px;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--absorbed-dark);
+    margin:0 0 6px;
+  }
+  h1{
+    font-size:26px;
+    margin:0 0 8px;
+    font-weight:800;
+    letter-spacing:-0.01em;
+  }
+  .lead{
+    color:var(--ink-soft);
+    font-size:14.5px;
+    max-width:680px;
+    margin:0;
+  }
+
+  /* controls */
+  .panel{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px 20px;
+  }
+  .controls{margin:22px 0;display:grid;gap:16px;}
+  .controls-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px 28px;
+  }
+  .ctrl label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .ctrl .val{
+    font-family:var(--mono);
+    color:var(--ink);
+    font-weight:700;
+  }
+  input[type=range]{
+    -webkit-appearance:none;
+    width:100%;
+    height:4px;
+    border-radius:2px;
+    background:var(--line);
+    outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:16px;height:16px;border-radius:50%;
+    background:var(--absorbed);
+    border:2px solid var(--paper);
+    box-shadow:0 0 0 1px var(--absorbed);
+    cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px;height:16px;border-radius:50%;
+    background:var(--absorbed);
+    border:2px solid var(--paper);
+    cursor:pointer;
+  }
+  .speed-note{
+    font-size:11.5px;
+    color:var(--warn);
+    margin-top:4px;
+  }
+
+  .buttons{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  button{
+    font-family:'Pretendard',sans-serif;
+    font-weight:700;
+    font-size:13.5px;
+    border-radius:9px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    padding:10px 18px;
+    cursor:pointer;
+    transition:opacity .15s;
+  }
+  button.secondary{
+    background:transparent;
+    color:var(--ink);
+  }
+  button:hover{opacity:.82;}
+  .speed-pick{display:flex;gap:6px;}
+  .speed-pick button{
+    padding:7px 12px;font-size:12.5px;
+    background:var(--paper);color:var(--ink-soft);border:1px solid var(--line);
+  }
+  .speed-pick button.active{
+    background:var(--ink);color:var(--paper);border-color:var(--ink);
+  }
+
+  /* stage */
+  .stage{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+    gap:24px;
+    margin-top:24px;
+  }
+
+  .beaker-card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:18px 18px 20px;
+    position:relative;
+  }
+  .beaker-card h2{
+    font-size:15px;
+    margin:0 0 2px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .dot.small{background:var(--absorbed);}
+  .dot.big{background:var(--warn);}
+  .dot.split{background:var(--split);}
+  .beaker-card .side-tag{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:14px;
+  }
+
+  .beaker-zone{
+    position:relative;
+    width:100%;
+    height:300px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+  }
+
+  .beaker{
+    position:relative;
+    width:220px;
+    height:260px;
+    border-left:3px solid var(--ink);
+    border-right:3px solid var(--ink);
+    border-bottom:3px solid var(--ink);
+    border-radius:0 0 16px 16px;
+    background:linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.3) 100%);
+    overflow:hidden;
+  }
+  .beaker::before{ /* rim */
+    content:"";
+    position:absolute;
+    top:0;left:-6px;right:-6px;
+    height:6px;
+    background:var(--ink);
+    border-radius:3px;
+  }
+  .beaker::after{ /* pour spout */
+    content:"";
+    position:absolute;
+    top:-2px; right:-10px;
+    width:14px;height:14px;
+    background:var(--bg);
+    border-top:3px solid var(--ink);
+    border-right:3px solid var(--ink);
+    transform:rotate(35deg);
+  }
+  .tick{
+    position:absolute;
+    left:-2px;
+    width:9px;height:1.5px;
+    background:var(--ink-soft);
+    opacity:.55;
+  }
+  .tick-label{
+    position:absolute;
+    left:10px;
+    font-family:var(--mono);
+    font-size:9px;
+    color:var(--ink-soft);
+    opacity:.6;
+    transform:translateY(-6px);
+  }
+
+  .liquid{
+    position:absolute;
+    left:0;right:0;bottom:0;
+    height:78%;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(255,255,255,.25), transparent 50%),
+      linear-gradient(180deg, #4FB5B9 0%, #2F8F94 60%, #1F6669 100%);
+    opacity:.88;
+  }
+  .liquid::before{
+    content:"";
+    position:absolute;
+    left:0;right:0;top:-6px;height:12px;
+    background:repeating-linear-gradient(90deg,
+      rgba(255,255,255,.5) 0 14px, transparent 14px 28px);
+    opacity:.5;
+    animation:wave 3.4s linear infinite;
+  }
+  @keyframes wave{ from{background-position-x:0;} to{background-position-x:28px;} }
+
+  .bubble{
+    position:absolute;
+    bottom:0;
+    width:5px;height:5px;
+    border-radius:50%;
+    background:rgba(255,255,255,.55);
+    animation:rise 4.5s linear infinite;
+  }
+  @keyframes rise{
+    0%{transform:translateY(0) scale(.8); opacity:0;}
+    10%{opacity:.7;}
+    90%{opacity:.4;}
+    100%{transform:translateY(-220px) scale(1.1); opacity:0;}
+  }
+
+  /* cube (isometric) */
+  .cube-stage{
+    position:absolute;
+    left:50%; bottom:30%;
+    perspective:700px;
+    width:0;height:0;
+  }
+  .cube{
+    position:relative;
+    transform-style:preserve-3d;
+  }
+  .mini-grid{
+    position:absolute;
+    left:50%; bottom:24%;
+    transform:translateX(-50%);
+    display:grid;
+    gap:4px;
+  }
+  .mini-cell{
+    position:relative;
+    perspective:500px;
+  }
+  .mini-cell .cube{ position:relative; transform-style:preserve-3d; }
+  .face{
+    position:absolute;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid rgba(33,38,43,.35);
+  }
+  .face .core{
+    background:var(--core);
+    border:1px solid rgba(33,38,43,.25);
+  }
+  .face.front{ background:var(--absorbed); z-index:3;}
+  .face.top{ background:#6FC4C7; }
+  .face.right{ background:#1C5F62; }
+
+  .readout{
+    margin-top:14px;
+    border-top:1px dashed var(--line);
+    padding-top:12px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px 14px;
+    font-family:var(--mono);
+    font-size:12px;
+  }
+  .readout .item{display:flex;justify-content:space-between;gap:8px;}
+  .readout .item span:first-child{color:var(--ink-soft);}
+  .readout .item span:last-child{font-weight:700;}
+  .readout .full{grid-column:1/-1;}
+
+  .status-badge{
+    display:inline-block;
+    margin-top:10px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    font-weight:700;
+    padding:4px 10px;
+    border-radius:999px;
+    background:var(--core);
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+  }
+  .status-badge.done{
+    background:var(--ink);
+    color:var(--paper);
+    border-color:var(--ink);
+  }
+
+  /* summary */
+  .summary{
+    margin-top:24px;
+  }
+  .summary h2{font-size:16px;margin:0 0 14px;}
+  .bars{display:grid;gap:14px;margin-bottom:18px;}
+  .bar-row{display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:10px;font-size:13px;}
+  .bar-row .label{font-weight:700;display:flex;align-items:center;gap:7px;}
+  .bar-track{height:14px;background:var(--core);border-radius:7px;overflow:hidden;border:1px solid var(--line);}
+  .bar-fill{height:100%;border-radius:7px;transition:width .25s ease;}
+  .bar-fill.small{background:var(--absorbed);}
+  .bar-fill.big{background:var(--warn);}
+  .bar-fill.split{background:var(--split);}
+  .bar-row .num{font-family:var(--mono);text-align:right;font-weight:700;}
+
+  .explain{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    background:var(--core);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+  }
+  .explain b{color:var(--ink);}
+
+  footer{
+    margin-top:30px;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .bubble, .liquid::before{animation:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Cell Division · Surface Area to Volume Ratio</p>
+    <h1>세포가 커지면 왜 분열할까? — 표면적 / 부피 비율 시뮬레이션</h1>
+    <p class="lead">
+      세 비커에 정육면체 세포가 들어 있습니다. 비커의 용액(물질)은
+      <b>같은 속도</b>로 모든 큐브의 표면에서 중심을 향해 흡수됩니다.
+      왼쪽은 작은 세포, 가운데는 큰 세포, 오른쪽은 큰 세포와 <b>부피는 똑같지만</b>
+      여러 조각으로 나뉜 세포입니다. 부피가 같아도 조각이 많아질수록
+      표면적이 늘어나 물질이 중심까지 훨씬 빨리 도달하는 것을 비교해보세요.
+    </p>
+  </header>
+
+  <section class="panel controls">
+    <div class="controls-grid">
+      <div class="ctrl">
+        <label>작은 세포 한 변 길이 — <span class="val" id="smallSideVal">10 mm</span></label>
+        <input type="range" id="smallSide" min="4" max="16" step="1" value="10">
+      </div>
+      <div class="ctrl">
+        <label>큰 세포 한 변 길이 — <span class="val" id="bigSideVal">30 mm</span></label>
+        <input type="range" id="bigSide" min="18" max="48" step="1" value="30">
+      </div>
+      <div class="ctrl">
+        <label>조각낸 세포 — 한 변당 분할 수 <span class="val" id="splitKVal">3등분 (27조각)</span></label>
+        <input type="range" id="splitK" min="2" max="4" step="1" value="3">
+      </div>
+      <div class="ctrl">
+        <label>물질 흡수 속도 (모든 세포 동일) — <span class="val" id="speedVal">0.6 mm/s</span></label>
+        <input type="range" id="speed" min="0.2" max="1.5" step="0.1" value="0.6">
+        <div class="speed-note">⚠ 세 비커 모두 이 속도로만 흡수됩니다</div>
+      </div>
+    </div>
+    <div class="buttons">
+      <button id="playBtn">▶ 시작</button>
+      <button id="resetBtn" class="secondary">⟲ 초기화</button>
+      <div class="speed-pick" id="speedPick">
+        <button data-x="1" class="active">1×</button>
+        <button data-x="2">2×</button>
+        <button data-x="4">4×</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="stage">
+    <!-- SMALL CUBE -->
+    <div class="beaker-card">
+      <h2><span class="dot small"></span>작은 세포 비커</h2>
+      <div class="side-tag">side = <span id="smallSideTag">10</span> mm</div>
+      <div class="beaker-zone">
+        <div class="beaker" id="beakerSmall">
+          <div class="liquid"></div>
+          <div class="cube-stage" id="cubeStageSmall"></div>
+        </div>
+      </div>
+      <span class="status-badge" id="badgeSmall">진행 중…</span>
+      <div class="readout">
+        <div class="item"><span>표면적</span><span id="smallArea">— mm²</span></div>
+        <div class="item"><span>부피</span><span id="smallVol">— mm³</span></div>
+        <div class="item"><span>표면적/부피</span><span id="smallRatio">—</span></div>
+        <div class="item"><span>경과 시간</span><span id="smallTime">0.0 s</span></div>
+        <div class="item full"><span>중심까지 남은 거리</span><span id="smallRemain">— mm</span></div>
+      </div>
+    </div>
+
+    <!-- BIG CUBE -->
+    <div class="beaker-card">
+      <h2><span class="dot big"></span>큰 세포 비커</h2>
+      <div class="side-tag">side = <span id="bigSideTag">30</span> mm</div>
+      <div class="beaker-zone">
+        <div class="beaker" id="beakerBig">
+          <div class="liquid"></div>
+          <div class="cube-stage" id="cubeStageBig"></div>
+        </div>
+      </div>
+      <span class="status-badge" id="badgeBig">진행 중…</span>
+      <div class="readout">
+        <div class="item"><span>표면적</span><span id="bigArea">— mm²</span></div>
+        <div class="item"><span>부피</span><span id="bigVol">— mm³</span></div>
+        <div class="item"><span>표면적/부피</span><span id="bigRatio">—</span></div>
+        <div class="item"><span>경과 시간</span><span id="bigTime">0.0 s</span></div>
+        <div class="item full"><span>중심까지 남은 거리</span><span id="bigRemain">— mm</span></div>
+      </div>
+    </div>
+
+    <!-- SPLIT CELLS: same volume as big cube, divided into pieces -->
+    <div class="beaker-card">
+      <h2><span class="dot split"></span>조각낸 세포 비커</h2>
+      <div class="side-tag">큰 세포와 부피 동일 · <span id="piecesCountTag">27</span>조각 (<span id="pieceSideTag">10.0</span>mm)</div>
+      <div class="beaker-zone">
+        <div class="beaker" id="beakerSplit">
+          <div class="liquid"></div>
+          <div class="mini-grid" id="miniGrid"></div>
+        </div>
+      </div>
+      <span class="status-badge" id="badgeSplit">진행 중…</span>
+      <div class="readout">
+        <div class="item"><span>전체 표면적</span><span id="splitArea">— mm²</span></div>
+        <div class="item"><span>전체 부피</span><span id="splitVol">— mm³</span></div>
+        <div class="item"><span>표면적/부피</span><span id="splitRatio">—</span></div>
+        <div class="item"><span>경과 시간</span><span id="splitTime">0.0 s</span></div>
+        <div class="item full"><span>조각 중심까지 남은 거리</span><span id="splitRemain">— mm</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel summary">
+    <h2>표면적 ÷ 부피 비율 비교</h2>
+    <div class="bars">
+      <div class="bar-row">
+        <div class="label"><span class="dot small"></span>작은 세포</div>
+        <div class="bar-track"><div class="bar-fill small" id="ratioBarSmall" style="width:0%"></div></div>
+        <div class="num" id="ratioNumSmall">—</div>
+      </div>
+      <div class="bar-row">
+        <div class="label"><span class="dot big"></span>큰 세포</div>
+        <div class="bar-track"><div class="bar-fill big" id="ratioBarBig" style="width:0%"></div></div>
+        <div class="num" id="ratioNumBig">—</div>
+      </div>
+      <div class="bar-row">
+        <div class="label"><span class="dot split"></span>조각낸 세포</div>
+        <div class="bar-track"><div class="bar-fill split" id="ratioBarSplit" style="width:0%"></div></div>
+        <div class="num" id="ratioNumSplit">—</div>
+      </div>
+    </div>
+    <div class="explain" id="explainText">
+      값을 조절하고 시작 버튼을 눌러보세요.
+    </div>
+  </section>
+
+  <footer>몸의 세포가 일정 크기 이상 자라면 더 이상 커지지 않고 분열하는 이유를 보여주는 모형입니다. 실제 세포의 물질 교환은 확산 외에도 다양한 요인의 영향을 받습니다.</footer>
+</div>
+
+<script>
+(function(){
+  // ---------- state ----------
+  const state = {
+    speed: 0.6,        // mm/s, identical for all cubes
+    smallSide: 10,      // mm
+    bigSide: 30,         // mm
+    splitK: 3,            // pieces per edge for the split-cell beaker
+    simSpeed: 1,
+    playing: false,
+    elapsed: 0,          // seconds
+    smallFinishedAt: null,
+    bigFinishedAt: null,
+    splitFinishedAt: null,
+    lastTs: null
+  };
+
+  // ---------- dom ----------
+  const $ = id => document.getElementById(id);
+  const smallSideInput = $('smallSide');
+  const bigSideInput = $('bigSide');
+  const splitKInput = $('splitK');
+  const speedInput = $('speed');
+  const playBtn = $('playBtn');
+  const resetBtn = $('resetBtn');
+  const speedPick = $('speedPick');
+
+  const stageSmall = $('cubeStageSmall');
+  const stageBig = $('cubeStageBig');
+  const miniGridEl = $('miniGrid');
+
+  // ---------- helpers ----------
+  function metrics(side){
+    const area = 6 * side * side;
+    const vol = side * side * side;
+    return { area, vol, ratio: area / vol };
+  }
+
+  function lerp(a,b,t){ return a + (b-a)*t; }
+  function lerpColor(c1,c2,t){
+    return [0,1,2].map(i => Math.round(lerp(c1[i],c2[i],t)));
+  }
+  function shade(rgb, factor){
+    // factor > 0 lightens, < 0 darkens
+    return rgb.map(v => {
+      let nv = factor > 0 ? v + (255-v)*factor : v + v*factor;
+      return Math.max(0, Math.min(255, Math.round(nv)));
+    });
+  }
+  const CREAM = [244,238,221];
+  const TEAL  = [47,143,148];
+
+  // ---------- cube building ----------
+  function buildCube(stageEl){
+    stageEl.innerHTML = '';
+    const cube = document.createElement('div');
+    cube.className = 'cube';
+    const front = document.createElement('div');
+    front.className = 'face front';
+    const top = document.createElement('div');
+    top.className = 'face top';
+    const right = document.createElement('div');
+    right.className = 'face right';
+    const core = document.createElement('div');
+    core.className = 'core';
+    front.appendChild(core);
+    cube.appendChild(front);
+    cube.appendChild(top);
+    cube.appendChild(right);
+    stageEl.appendChild(cube);
+    return { cube, front, top, right, core };
+  }
+
+  const elSmall = buildCube(stageSmall);
+  const elBig = buildCube(stageBig);
+
+  let scale = 1; // px per mm, derived from bigSide so big cube ~ fixed px size
+
+  function sizeCube(els, sidePx){
+    const s = sidePx;
+    els.cube.style.width = s + 'px';
+    els.cube.style.height = s + 'px';
+    els.cube.style.transform = `translate(-50%,-100%) rotateX(-18deg) rotateY(-35deg)`;
+
+    [els.front, els.top, els.right].forEach(f=>{
+      f.style.width = s + 'px';
+      f.style.height = s + 'px';
+    });
+    els.front.style.transform = `translateZ(${s/2}px)`;
+    els.top.style.transform = `rotateX(90deg) translateZ(${s/2}px)`;
+    els.right.style.transform = `rotateY(90deg) translateZ(${s/2}px)`;
+  }
+
+  function updateCubeProgress(els, side, progress){
+    // front face: literal shrinking core square
+    const corePx = Math.max(0, (side * scale) * (1 - progress));
+    els.core.style.width = corePx + 'px';
+    els.core.style.height = corePx + 'px';
+
+    const rgb = lerpColor(CREAM, TEAL, progress);
+    els.front.style.background = `rgb(${TEAL.join(',')})`;
+    els.top.style.background = `rgb(${shade(rgb, .35).join(',')})`;
+    els.right.style.background = `rgb(${shade(rgb, -.35).join(',')})`;
+  }
+
+  function pieceSide(){ return state.bigSide / state.splitK; }
+
+  function sizeMiniCube(els, sidePx){
+    const s = sidePx;
+    els.cube.style.width = s + 'px';
+    els.cube.style.height = s + 'px';
+    els.cube.style.transform = 'rotateX(-18deg) rotateY(-35deg)';
+
+    [els.front, els.top, els.right].forEach(f=>{
+      f.style.width = s + 'px';
+      f.style.height = s + 'px';
+    });
+    els.front.style.transform = `translateZ(${s/2}px)`;
+    els.top.style.transform = `rotateX(90deg) translateZ(${s/2}px)`;
+    els.right.style.transform = `rotateY(90deg) translateZ(${s/2}px)`;
+  }
+
+  let miniCells = [];
+  function relayoutSplit(){
+    const k = state.splitK;
+    if(miniCells.length !== k*k){
+      miniGridEl.innerHTML = '';
+      miniCells = [];
+      for(let i=0;i<k*k;i++){
+        const cell = document.createElement('div');
+        cell.className = 'mini-cell';
+        miniGridEl.appendChild(cell);
+        miniCells.push(buildCube(cell));
+      }
+    }
+    miniGridEl.style.gridTemplateColumns = `repeat(${k}, auto)`;
+    const ps = pieceSide() * scale;
+    miniCells.forEach(els => sizeMiniCube(els, ps));
+  }
+
+  // ---------- layout ----------
+  function relayout(){
+    scale = 112 / state.bigSide; // big cube front face ≈112px
+    sizeCube(elSmall, state.smallSide * scale);
+    sizeCube(elBig, state.bigSide * scale);
+    relayoutSplit();
+  }
+
+  // ---------- ticks on beakers ----------
+  function buildTicks(beakerId, n){
+    const beaker = $(beakerId);
+    beaker.querySelectorAll('.tick,.tick-label').forEach(e=>e.remove());
+    for(let i=1;i<n;i++){
+      const t = document.createElement('div');
+      t.className='tick';
+      t.style.bottom = (i/n*100) + '%';
+      beaker.appendChild(t);
+      if(i % 2 === 0){
+        const lab = document.createElement('div');
+        lab.className='tick-label';
+        lab.style.bottom = (i/n*100) + '%';
+        lab.textContent = (100 - i/n*100).toFixed(0);
+        beaker.appendChild(lab);
+      }
+    }
+  }
+  buildTicks('beakerSmall', 8);
+  buildTicks('beakerBig', 8);
+  buildTicks('beakerSplit', 8);
+
+  // ---------- bubbles ----------
+  function addBubbles(beakerId, count){
+    const beaker = $(beakerId);
+    const liquid = beaker.querySelector('.liquid');
+    for(let i=0;i<count;i++){
+      const b = document.createElement('div');
+      b.className = 'bubble';
+      b.style.left = (8 + Math.random()*84) + '%';
+      b.style.animationDelay = (Math.random()*4.5) + 's';
+      b.style.animationDuration = (3.6 + Math.random()*2.2) + 's';
+      liquid.appendChild(b);
+    }
+  }
+  addBubbles('beakerSmall', 8);
+  addBubbles('beakerBig', 8);
+  addBubbles('beakerSplit', 8);
+
+  // ---------- readouts ----------
+  function fmt(n, d=1){ return Number(n).toFixed(d); }
+
+  function refreshStaticReadouts(){
+    const sm = metrics(state.smallSide);
+    const bg = metrics(state.bigSide);
+    const ps = pieceSide();
+    const pieceM = metrics(ps);
+    const pieces = state.splitK ** 3;
+    const splitArea = pieceM.area * pieces;
+    const splitVol = pieceM.vol * pieces;
+    const splitRatio = splitArea / splitVol;
+
+    $('smallArea').textContent = fmt(sm.area,0) + ' mm²';
+    $('smallVol').textContent = fmt(sm.vol,0) + ' mm³';
+    $('smallRatio').textContent = fmt(sm.ratio,2);
+    $('bigArea').textContent = fmt(bg.area,0) + ' mm²';
+    $('bigVol').textContent = fmt(bg.vol,0) + ' mm³';
+    $('bigRatio').textContent = fmt(bg.ratio,2);
+    $('splitArea').textContent = fmt(splitArea,0) + ' mm²';
+    $('splitVol').textContent = fmt(splitVol,0) + ' mm³';
+    $('splitRatio').textContent = fmt(splitRatio,2);
+
+    $('smallSideTag').textContent = state.smallSide;
+    $('bigSideTag').textContent = state.bigSide;
+    $('piecesCountTag').textContent = pieces;
+    $('pieceSideTag').textContent = fmt(ps,1);
+    $('splitKVal').textContent = `${state.splitK}등분 (${pieces}조각)`;
+
+    const maxRatio = Math.max(sm.ratio, bg.ratio, splitRatio);
+    $('ratioBarSmall').style.width = (sm.ratio/maxRatio*100) + '%';
+    $('ratioBarBig').style.width = (bg.ratio/maxRatio*100) + '%';
+    $('ratioBarSplit').style.width = (splitRatio/maxRatio*100) + '%';
+    $('ratioNumSmall').textContent = fmt(sm.ratio,2);
+    $('ratioNumBig').textContent = fmt(bg.ratio,2);
+    $('ratioNumSplit').textContent = fmt(splitRatio,2);
+
+    const times = {
+      small: state.smallSide/(2*state.speed),
+      big: state.bigSide/(2*state.speed),
+      split: ps/(2*state.speed)
+    };
+    const ratioOfRatios = (sm.ratio/bg.ratio);
+    const areaGain = splitArea/bg.area;
+    $('explainText').innerHTML =
+      `작은 세포의 표면적/부피 비율(<b>${fmt(sm.ratio,2)}</b>)은 큰 세포(<b>${fmt(bg.ratio,2)}</b>)보다 약 <b>${fmt(ratioOfRatios,1)}배</b> 큽니다. ` +
+      `같은 속도(${fmt(state.speed,1)} mm/s)로 물질이 흡수되어도, 작은 세포는 중심까지 약 <b>${fmt(times.small,1)}초</b>, ` +
+      `큰 세포는 약 <b>${fmt(times.big,1)}초</b>가 걸립니다. ` +
+      `오른쪽 비커는 큰 세포와 부피가 똑같지만(<b>${fmt(splitVol,0)} mm³</b>) <b>${pieces}조각</b>으로 나뉘어 표면적이 ` +
+      `<b>${fmt(areaGain,1)}배</b>로 늘어났고, 그 결과 같은 속도로도 조각마다 중심까지 약 <b>${fmt(times.split,1)}초</b>면 충분합니다. ` +
+      `부피는 그대로여도 세포가 작은 조각으로 나뉘면(=분열하면) 표면적이 늘어나 물질 교환이 훨씬 빨라진다는 것을 보여줍니다.`;
+  }
+
+  function tickReadouts(){
+    const smallDepth = Math.min(state.speed*state.elapsed, state.smallSide/2);
+    const bigDepth = Math.min(state.speed*state.elapsed, state.bigSide/2);
+    const smallProg = smallDepth / (state.smallSide/2);
+    const bigProg = bigDepth / (state.bigSide/2);
+
+    const ps = pieceSide();
+    const splitDepth = Math.min(state.speed*state.elapsed, ps/2);
+    const splitProg = splitDepth / (ps/2);
+
+    updateCubeProgress(elSmall, state.smallSide, smallProg);
+    updateCubeProgress(elBig, state.bigSide, bigProg);
+    miniCells.forEach(els => updateCubeProgress(els, ps, splitProg));
+
+    $('smallTime').textContent = fmt(state.elapsed,1) + ' s';
+    $('bigTime').textContent = fmt(state.elapsed,1) + ' s';
+    $('splitTime').textContent = fmt(state.elapsed,1) + ' s';
+    $('smallRemain').textContent = fmt(Math.max(0, state.smallSide/2 - smallDepth),1) + ' mm';
+    $('bigRemain').textContent = fmt(Math.max(0, state.bigSide/2 - bigDepth),1) + ' mm';
+    $('splitRemain').textContent = fmt(Math.max(0, ps/2 - splitDepth),1) + ' mm';
+
+    const badgeSmall = $('badgeSmall');
+    const badgeBig = $('badgeBig');
+    const badgeSplit = $('badgeSplit');
+    if(smallProg >= 1){
+      if(state.smallFinishedAt === null) state.smallFinishedAt = state.elapsed;
+      badgeSmall.textContent = `완료 · ${fmt(state.smallFinishedAt,1)}s`;
+      badgeSmall.classList.add('done');
+    } else {
+      badgeSmall.textContent = '진행 중…';
+      badgeSmall.classList.remove('done');
+    }
+    if(bigProg >= 1){
+      if(state.bigFinishedAt === null) state.bigFinishedAt = state.elapsed;
+      badgeBig.textContent = `완료 · ${fmt(state.bigFinishedAt,1)}s`;
+      badgeBig.classList.add('done');
+    } else {
+      badgeBig.textContent = '진행 중…';
+      badgeBig.classList.remove('done');
+    }
+    if(splitProg >= 1){
+      if(state.splitFinishedAt === null) state.splitFinishedAt = state.elapsed;
+      badgeSplit.textContent = `완료 · ${fmt(state.splitFinishedAt,1)}s`;
+      badgeSplit.classList.add('done');
+    } else {
+      badgeSplit.textContent = '진행 중…';
+      badgeSplit.classList.remove('done');
+    }
+
+    if(smallProg >= 1 && bigProg >= 1 && splitProg >= 1 && state.playing){
+      state.playing = false;
+      playBtn.textContent = '▶ 시작';
+    }
+  }
+
+  // ---------- animation loop ----------
+  function loop(ts){
+    if(!state.playing){ state.lastTs = null; return; }
+    if(state.lastTs === null) state.lastTs = ts;
+    const dt = (ts - state.lastTs) / 1000;
+    state.lastTs = ts;
+    state.elapsed += dt * state.simSpeed;
+    tickReadouts();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- controls wiring ----------
+  smallSideInput.addEventListener('input', e=>{
+    state.smallSide = Number(e.target.value);
+    if(state.bigSide <= state.smallSide){
+      state.bigSide = state.smallSide + 4;
+      bigSideInput.value = state.bigSide;
+      $('bigSideVal').textContent = state.bigSide + ' mm';
+    }
+    $('smallSideVal').textContent = state.smallSide + ' mm';
+    hardReset();
+  });
+
+  bigSideInput.addEventListener('input', e=>{
+    let v = Number(e.target.value);
+    if(v <= state.smallSide) v = state.smallSide + 4;
+    state.bigSide = v;
+    bigSideInput.value = v;
+    $('bigSideVal').textContent = v + ' mm';
+    hardReset();
+  });
+
+  splitKInput.addEventListener('input', e=>{
+    state.splitK = Number(e.target.value);
+    hardReset();
+  });
+
+  speedInput.addEventListener('input', e=>{
+    state.speed = Number(e.target.value);
+    $('speedVal').textContent = fmt(state.speed,1) + ' mm/s';
+    hardReset();
+  });
+
+  speedPick.addEventListener('click', e=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    state.simSpeed = Number(btn.dataset.x);
+    [...speedPick.children].forEach(b=>b.classList.toggle('active', b===btn));
+  });
+
+  playBtn.addEventListener('click', ()=>{
+    state.playing = !state.playing;
+    playBtn.textContent = state.playing ? '⏸ 일시정지' : '▶ 시작';
+    if(state.playing) requestAnimationFrame(loop);
+  });
+
+  resetBtn.addEventListener('click', hardReset);
+
+  function hardReset(){
+    state.elapsed = 0;
+    state.smallFinishedAt = null;
+    state.bigFinishedAt = null;
+    state.splitFinishedAt = null;
+    state.playing = false;
+    state.lastTs = null;
+    playBtn.textContent = '▶ 시작';
+    relayout();
+    refreshStaticReadouts();
+    tickReadouts();
+  }
+
+  // ---------- init ----------
+  relayout();
+  refreshStaticReadouts();
+  tickReadouts();
+})();
+</script>
+</body>
+</html>
