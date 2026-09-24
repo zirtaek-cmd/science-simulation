@@ -1460,15 +1460,27 @@ function updateSceneAt(t) {
   let spindleIdx = 0;
 
   chromosomes.forEach((chr, i) => {
-    // 기본 스케일 (간기 0 -> 전기에서 커지며 응축)
-    if (t < 0.4) {
-      chr.group.visible = false;
-    } else {
+    // 단계별 염색체 가시성 및 변형 제어 (간기 0 -> 전기 -> 중기 -> 후기 -> 말기)
+    // 전기 이후에는 먼저 완전히 보이게 복원한다(슬라이더로 단계를 건너뛰거나 딸세포 단계에서 되돌아올 때
+    // 숨김·반투명 상태가 남지 않도록). 말기 이후의 페이드는 아래 else 분기가 다시 덮어쓴다.
+    if (t >= 0.4) {
       chr.group.visible = true;
+      chr.armA.mat.opacity = 1;
+      chr.armB.mat.opacity = 1;
     }
-
-    if (t >= 0.4 && t < 1.0) {
+    if (t < 0.4) {
+      // 1단계: 분열 전 (간기) - 염색체는 아직 응축되지 않아 보이지 않음 (핵막 내부 염색사만 관찰됨)
+      chr.group.visible = false;
+      chr.group.scale.setScalar(0.001);
+      chr.armA.mat.transparent = true;
+      chr.armB.mat.transparent = true;
+      chr.armA.mat.opacity = 0;
+      chr.armB.mat.opacity = 0;
+    } else if (t >= 0.4 && t < 1.0) {
       // 간기 -> 전기: 염색체 응축 나타남
+      chr.group.visible = true;
+      chr.armA.mat.opacity = 1;
+      chr.armB.mat.opacity = 1;
       const progress = (t - 0.4) / 0.6;
       chr.group.scale.setScalar(progress);
       chr.group.position.copy(POS_PROPHASE[i].pos).multiplyScalar(0.7 + 0.3 * progress);
