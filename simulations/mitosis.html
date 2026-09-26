@@ -1816,15 +1816,17 @@ btnPlay.addEventListener('click', () => {
 });
 
 // 카메라 리셋 & 자동 회전
+let isRotating = false;
 btnResetCam.addEventListener('click', () => {
   camera.position.copy(INITIAL_CAM_POS);
+  cellGroup.rotation.y = 0;  // 회전 버튼으로 돌아간 세포 방향도 처음으로
   controls.target.set(0, 0, 0);
   controls.update();
 });
 
 btnAutorotate.addEventListener('click', () => {
-  controls.autoRotate = !controls.autoRotate;
-  btnAutorotate.classList.toggle('active', controls.autoRotate);
+  isRotating = !isRotating;
+  btnAutorotate.classList.toggle('active', isRotating);
 });
 
 // 세포막 투명도 토글 (내부 더 선명하게 보기)
@@ -1894,8 +1896,8 @@ function animate() {
     syncUI(rounded);
   }
 
-  // 가벼운 부유 회전감 (세포 생동감)
-  cellGroup.rotation.y += 0.0015;
+  // 회전 버튼을 켰을 때만 세포가 천천히 돈다(기본은 멈춤)
+  if (isRotating) cellGroup.rotation.y += 0.006;
 
   controls.update();
   renderer.render(scene, camera);
