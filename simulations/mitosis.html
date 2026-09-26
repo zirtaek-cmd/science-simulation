@@ -1031,8 +1031,9 @@ cellGroup.add(nucleusDaughterL);
 cellGroup.add(nucleusDaughterR);
 
 // 3. 염색사 (Chromatin, 간기 및 딸세포에서 실타래처럼 엉킨 유전물질)
-function createChromatinCloud(count, radius, color1, color2) {
+function createChromatinCloud(count, radius, color1, color2, withCopies = false) {
   const group = new THREE.Group();
+  group.userData.copies = [];
   for (let i = 0; i < count; i++) {
     const points = [];
     const baseP = new THREE.Vector3(
@@ -1063,11 +1064,34 @@ function createChromatinCloud(count, radius, color1, color2) {
     });
     const tube = new THREE.Mesh(tubeGeo, mat);
     group.add(tube);
+
+    if (withCopies) {
+      // DNA 복제: 원본과 똑같은 모양의 가닥이 원본 자리에서 흐리게 나타나 옆으로 비켜나며 진해진다
+      const copy = new THREE.Mesh(tubeGeo, mat.clone());
+      copy.visible = false;
+      copy.userData.offset = new THREE.Vector3(
+        (Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5)
+      ).normalize().multiplyScalar(0.15);
+      copy.userData.delay = Math.random() * 0.45;   // 가닥마다 복제 시작 시점을 조금씩 다르게
+      group.add(copy);
+      group.userData.copies.push(copy);
+    }
   }
   return group;
 }
 
-const chromatinMain = createChromatinCloud(42, 1.45, 0x3a7bd5, 0xd9534f);
+// 복제 진행도(0~1)에 따라 복제 가닥을 옆으로 옮기며 진하게 한다. baseOpacity = 그 순간 원본 가닥의 불투명도
+function setReplication(cloud, r, baseOpacity) {
+  cloud.userData.copies.forEach(copy => {
+    const local = smoothstep(0, 1, (r - copy.userData.delay) / 0.55);
+    copy.visible = local > 0;
+    copy.position.copy(copy.userData.offset).multiplyScalar(local);
+    copy.material.opacity = baseOpacity * (0.15 + 0.85 * local);
+  });
+}
+
+// 복제 전에는 파랑·빨강 가닥 21개, 간기 동안 복제되어 42개가 된다
+const chromatinMain = createChromatinCloud(21, 1.45, 0x3a7bd5, 0xd9534f, true);
 cellGroup.add(chromatinMain);
 
 const chromatinLeft = createChromatinCloud(24, 0.95, 0x3a7bd5, 0xd9534f);
@@ -1315,6 +1339,13 @@ let currentT = 0.0;
 let targetT = 0.0;
 let isPlaying = false;
 let playSpeed = 0.007;
+// 간기 DNA 복제 — 재생 타임라인 t 0~0.35 구간(간기 → 전기로 넘어가기 전)에서 진행된다.
+// 1단계 화면(t=0)은 복제 전, 재생하거나 슬라이더를 움직여 이 구간을 지나면 가닥 수가 2배가 된다.
+const REPLICATION_END = 0.35;
+const REPLICATION_PLAY_RATE = 0.35;  // 연속 재생 때 이 구간은 느리게(약 2.4초) 지나가 복제가 보이게 한다
+function replicationProgress(t) {
+  return Math.max(0, Math.min(1, t / REPLICATION_END));
+}
 
 function lerp(a, b, t) {
   return a + (b - a) * t;
@@ -1417,6 +1448,7 @@ function updateSceneAt(t) {
     chromatinMain.visible = true;
     const opacity = (t < 0.5) ? 0.75 : 0.75 * (1 - (t - 0.5) / 0.6);
     chromatinMain.children.forEach(m => m.material.opacity = Math.max(0, opacity));
+    setReplication(chromatinMain, replicationProgress(t), Math.max(0, opacity));
     chromatinLeft.visible = false;
     chromatinRight.visible = false;
   } else if (t >= 1.1 && t < 3.8) {
@@ -1834,7 +1866,8 @@ function animate() {
   const delta = clock.getDelta();
 
   if (isPlaying) {
-    targetT += playSpeed * 60 * delta;
+    const rate = targetT < REPLICATION_END ? REPLICATION_PLAY_RATE : 1;
+    targetT += playSpeed * 60 * Math.min(delta, 0.1) * rate;
     if (targetT > 5.0) {
       targetT = 5.0;
       isPlaying = false;
@@ -1844,8 +1877,13 @@ function animate() {
     stepSlider.value = currentT;
     stepVal.textContent = `${(currentT + 1).toFixed(1)}단계`;
   } else {
-    // 부드러운 Lerp 이동
-    currentT = lerp(currentT, targetT, 0.12);
+    if (currentT < REPLICATION_END && targetT > currentT) {
+      // 단계 버튼·다음 버튼으로 간기를 지나갈 때도 복제 구간은 연속 재생과 같은 속도로 천천히 지나간다
+      currentT = Math.min(targetT, currentT + playSpeed * 60 * Math.min(delta, 0.1) * REPLICATION_PLAY_RATE);
+    } else {
+      // 부드러운 Lerp 이동
+      currentT = lerp(currentT, targetT, 0.12);
+    }
   }
 
   updateSceneAt(currentT);
