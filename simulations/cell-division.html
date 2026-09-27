@@ -381,11 +381,11 @@
   <section class="panel controls">
     <div class="controls-grid">
       <div class="ctrl">
-        <label>작은 세포 한 변 길이 — <span class="val" id="smallSideVal">10 mm</span></label>
+        <label>작은 세포 한 변 길이 — <span class="val" id="smallSideVal">1 cm</span></label>
         <input type="range" id="smallSide" min="4" max="16" step="1" value="10">
       </div>
       <div class="ctrl">
-        <label>큰 세포 한 변 길이 — <span class="val" id="bigSideVal">30 mm</span></label>
+        <label>큰 세포 한 변 길이 — <span class="val" id="bigSideVal">3 cm</span></label>
         <input type="range" id="bigSide" min="18" max="48" step="1" value="30">
       </div>
       <div class="ctrl">
@@ -393,7 +393,7 @@
         <input type="range" id="splitK" min="2" max="4" step="1" value="3">
       </div>
       <div class="ctrl">
-        <label>물질 흡수 속도 (모든 세포 동일) — <span class="val" id="speedVal">0.6 mm/s</span></label>
+        <label>물질 흡수 속도 (모든 세포 동일) — <span class="val" id="speedVal">0.06 cm/s</span></label>
         <input type="range" id="speed" min="0.2" max="1.5" step="0.1" value="0.6">
         <div class="speed-note">⚠ 세 비커 모두 이 속도로만 흡수됩니다</div>
       </div>
@@ -413,7 +413,7 @@
     <!-- SMALL CUBE -->
     <div class="beaker-card">
       <h2><span class="dot small"></span>작은 세포 비커</h2>
-      <div class="side-tag">side = <span id="smallSideTag">10</span> mm</div>
+      <div class="side-tag">side = <span id="smallSideTag">1</span> cm</div>
       <div class="beaker-zone">
         <div class="beaker" id="beakerSmall">
           <div class="liquid"></div>
@@ -422,18 +422,18 @@
       </div>
       <span class="status-badge" id="badgeSmall">진행 중…</span>
       <div class="readout">
-        <div class="item"><span>표면적</span><span id="smallArea">— mm²</span></div>
-        <div class="item"><span>부피</span><span id="smallVol">— mm³</span></div>
+        <div class="item"><span>표면적</span><span id="smallArea">— cm²</span></div>
+        <div class="item"><span>부피</span><span id="smallVol">— cm³</span></div>
         <div class="item"><span>표면적/부피</span><span id="smallRatio">—</span></div>
         <div class="item"><span>경과 시간</span><span id="smallTime">0.0 s</span></div>
-        <div class="item full"><span>중심까지 남은 거리</span><span id="smallRemain">— mm</span></div>
+        <div class="item full"><span>중심까지 남은 거리</span><span id="smallRemain">— cm</span></div>
       </div>
     </div>
 
     <!-- BIG CUBE -->
     <div class="beaker-card">
       <h2><span class="dot big"></span>큰 세포 비커</h2>
-      <div class="side-tag">side = <span id="bigSideTag">30</span> mm</div>
+      <div class="side-tag">side = <span id="bigSideTag">3</span> cm</div>
       <div class="beaker-zone">
         <div class="beaker" id="beakerBig">
           <div class="liquid"></div>
@@ -442,18 +442,18 @@
       </div>
       <span class="status-badge" id="badgeBig">진행 중…</span>
       <div class="readout">
-        <div class="item"><span>표면적</span><span id="bigArea">— mm²</span></div>
-        <div class="item"><span>부피</span><span id="bigVol">— mm³</span></div>
+        <div class="item"><span>표면적</span><span id="bigArea">— cm²</span></div>
+        <div class="item"><span>부피</span><span id="bigVol">— cm³</span></div>
         <div class="item"><span>표면적/부피</span><span id="bigRatio">—</span></div>
         <div class="item"><span>경과 시간</span><span id="bigTime">0.0 s</span></div>
-        <div class="item full"><span>중심까지 남은 거리</span><span id="bigRemain">— mm</span></div>
+        <div class="item full"><span>중심까지 남은 거리</span><span id="bigRemain">— cm</span></div>
       </div>
     </div>
 
     <!-- SPLIT CELLS: same volume as big cube, divided into pieces -->
     <div class="beaker-card">
       <h2><span class="dot split"></span>조각낸 세포 비커</h2>
-      <div class="side-tag">큰 세포와 부피 동일 · <span id="piecesCountTag">27</span>조각 (<span id="pieceSideTag">10.0</span>mm)</div>
+      <div class="side-tag">큰 세포와 부피 동일 · <span id="piecesCountTag">27</span>조각 (<span id="pieceSideTag">1</span> cm)</div>
       <div class="beaker-zone">
         <div class="beaker" id="beakerSplit">
           <div class="liquid"></div>
@@ -462,11 +462,11 @@
       </div>
       <span class="status-badge" id="badgeSplit">진행 중…</span>
       <div class="readout">
-        <div class="item"><span>전체 표면적</span><span id="splitArea">— mm²</span></div>
-        <div class="item"><span>전체 부피</span><span id="splitVol">— mm³</span></div>
+        <div class="item"><span>전체 표면적</span><span id="splitArea">— cm²</span></div>
+        <div class="item"><span>전체 부피</span><span id="splitVol">— cm³</span></div>
         <div class="item"><span>표면적/부피</span><span id="splitRatio">—</span></div>
         <div class="item"><span>경과 시간</span><span id="splitTime">0.0 s</span></div>
-        <div class="item full"><span>조각 중심까지 남은 거리</span><span id="splitRemain">— mm</span></div>
+        <div class="item full"><span>조각 중심까지 남은 거리</span><span id="splitRemain">— cm</span></div>
       </div>
     </div>
   </section>
@@ -687,6 +687,12 @@
 
   // ---------- readouts ----------
   function fmt(n, d=1){ return Number(n).toFixed(d); }
+  // 화면 표시는 cm (2026-09-27 교사 요청). 내부 계산·애니메이션은 mm 그대로 두고 보여 줄 때만 환산한다.
+  // 길이 ÷10, 넓이 ÷100, 부피 ÷1000, 표면적/부피 비(1/mm → 1/cm) ×10. 끝자리 0은 떼고 보여 준다.
+  function cmNum(n, d){ return String(Number(Number(n).toFixed(d))); }
+  function cmLen(mm, d=2){ return cmNum(mm/10, d); }
+  function cmArea(mm2, d=2){ return cmNum(mm2/100, d); }
+  function cmVol(mm3, d=2){ return cmNum(mm3/1000, d); }
 
   function refreshStaticReadouts(){
     const sm = metrics(state.smallSide);
@@ -698,29 +704,29 @@
     const splitVol = pieceM.vol * pieces;
     const splitRatio = splitArea / splitVol;
 
-    $('smallArea').textContent = fmt(sm.area,0) + ' mm²';
-    $('smallVol').textContent = fmt(sm.vol,0) + ' mm³';
-    $('smallRatio').textContent = fmt(sm.ratio,2);
-    $('bigArea').textContent = fmt(bg.area,0) + ' mm²';
-    $('bigVol').textContent = fmt(bg.vol,0) + ' mm³';
-    $('bigRatio').textContent = fmt(bg.ratio,2);
-    $('splitArea').textContent = fmt(splitArea,0) + ' mm²';
-    $('splitVol').textContent = fmt(splitVol,0) + ' mm³';
-    $('splitRatio').textContent = fmt(splitRatio,2);
+    $('smallArea').textContent = cmArea(sm.area) + ' cm²';
+    $('smallVol').textContent = cmVol(sm.vol) + ' cm³';
+    $('smallRatio').textContent = fmt(sm.ratio*10,2);
+    $('bigArea').textContent = cmArea(bg.area) + ' cm²';
+    $('bigVol').textContent = cmVol(bg.vol) + ' cm³';
+    $('bigRatio').textContent = fmt(bg.ratio*10,2);
+    $('splitArea').textContent = cmArea(splitArea) + ' cm²';
+    $('splitVol').textContent = cmVol(splitVol) + ' cm³';
+    $('splitRatio').textContent = fmt(splitRatio*10,2);
 
-    $('smallSideTag').textContent = state.smallSide;
-    $('bigSideTag').textContent = state.bigSide;
+    $('smallSideTag').textContent = cmLen(state.smallSide);
+    $('bigSideTag').textContent = cmLen(state.bigSide);
     $('piecesCountTag').textContent = pieces;
-    $('pieceSideTag').textContent = fmt(ps,1);
+    $('pieceSideTag').textContent = cmLen(ps);
     $('splitKVal').textContent = `${state.splitK}등분 (${pieces}조각)`;
 
     const maxRatio = Math.max(sm.ratio, bg.ratio, splitRatio);
     $('ratioBarSmall').style.width = (sm.ratio/maxRatio*100) + '%';
     $('ratioBarBig').style.width = (bg.ratio/maxRatio*100) + '%';
     $('ratioBarSplit').style.width = (splitRatio/maxRatio*100) + '%';
-    $('ratioNumSmall').textContent = fmt(sm.ratio,2);
-    $('ratioNumBig').textContent = fmt(bg.ratio,2);
-    $('ratioNumSplit').textContent = fmt(splitRatio,2);
+    $('ratioNumSmall').textContent = fmt(sm.ratio*10,2);
+    $('ratioNumBig').textContent = fmt(bg.ratio*10,2);
+    $('ratioNumSplit').textContent = fmt(splitRatio*10,2);
 
     const times = {
       small: state.smallSide/(2*state.speed),
@@ -730,10 +736,10 @@
     const ratioOfRatios = (sm.ratio/bg.ratio);
     const areaGain = splitArea/bg.area;
     $('explainText').innerHTML =
-      `작은 세포의 표면적/부피 비율(<b>${fmt(sm.ratio,2)}</b>)은 큰 세포(<b>${fmt(bg.ratio,2)}</b>)보다 약 <b>${fmt(ratioOfRatios,1)}배</b> 큽니다. ` +
-      `같은 속도(${fmt(state.speed,1)} mm/s)로 물질이 흡수되어도, 작은 세포는 중심까지 약 <b>${fmt(times.small,1)}초</b>, ` +
+      `작은 세포의 표면적/부피 비율(<b>${fmt(sm.ratio*10,2)}</b>)은 큰 세포(<b>${fmt(bg.ratio*10,2)}</b>)보다 약 <b>${fmt(ratioOfRatios,1)}배</b> 큽니다. ` +
+      `같은 속도(${cmLen(state.speed)} cm/s)로 물질이 흡수되어도, 작은 세포는 중심까지 약 <b>${fmt(times.small,1)}초</b>, ` +
       `큰 세포는 약 <b>${fmt(times.big,1)}초</b>가 걸립니다. ` +
-      `오른쪽 비커는 큰 세포와 부피가 똑같지만(<b>${fmt(splitVol,0)} mm³</b>) <b>${pieces}조각</b>으로 나뉘어 표면적이 ` +
+      `오른쪽 비커는 큰 세포와 부피가 똑같지만(<b>${cmVol(splitVol)} cm³</b>) <b>${pieces}조각</b>으로 나뉘어 표면적이 ` +
       `<b>${fmt(areaGain,1)}배</b>로 늘어났고, 그 결과 같은 속도로도 조각마다 중심까지 약 <b>${fmt(times.split,1)}초</b>면 충분합니다. ` +
       `부피는 그대로여도 세포가 작은 조각으로 나뉘면(=분열하면) 표면적이 늘어나 물질 교환이 훨씬 빨라진다는 것을 보여줍니다.`;
   }
@@ -755,9 +761,9 @@
     $('smallTime').textContent = fmt(state.elapsed,1) + ' s';
     $('bigTime').textContent = fmt(state.elapsed,1) + ' s';
     $('splitTime').textContent = fmt(state.elapsed,1) + ' s';
-    $('smallRemain').textContent = fmt(Math.max(0, state.smallSide/2 - smallDepth),1) + ' mm';
-    $('bigRemain').textContent = fmt(Math.max(0, state.bigSide/2 - bigDepth),1) + ' mm';
-    $('splitRemain').textContent = fmt(Math.max(0, ps/2 - splitDepth),1) + ' mm';
+    $('smallRemain').textContent = cmLen(Math.max(0, state.smallSide/2 - smallDepth)) + ' cm';
+    $('bigRemain').textContent = cmLen(Math.max(0, state.bigSide/2 - bigDepth)) + ' cm';
+    $('splitRemain').textContent = cmLen(Math.max(0, ps/2 - splitDepth)) + ' cm';
 
     const badgeSmall = $('badgeSmall');
     const badgeBig = $('badgeBig');
@@ -810,9 +816,9 @@
     if(state.bigSide <= state.smallSide){
       state.bigSide = state.smallSide + 4;
       bigSideInput.value = state.bigSide;
-      $('bigSideVal').textContent = state.bigSide + ' mm';
+      $('bigSideVal').textContent = cmLen(state.bigSide) + ' cm';
     }
-    $('smallSideVal').textContent = state.smallSide + ' mm';
+    $('smallSideVal').textContent = cmLen(state.smallSide) + ' cm';
     hardReset();
   });
 
@@ -821,7 +827,7 @@
     if(v <= state.smallSide) v = state.smallSide + 4;
     state.bigSide = v;
     bigSideInput.value = v;
-    $('bigSideVal').textContent = v + ' mm';
+    $('bigSideVal').textContent = cmLen(v) + ' cm';
     hardReset();
   });
 
@@ -832,7 +838,7 @@
 
   speedInput.addEventListener('input', e=>{
     state.speed = Number(e.target.value);
-    $('speedVal').textContent = fmt(state.speed,1) + ' mm/s';
+    $('speedVal').textContent = cmLen(state.speed) + ' cm/s';
     hardReset();
   });
 
