@@ -1,0 +1,2173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>생식세포 분열(감수 분열) 3D 시뮬레이션 — 교과서 모형 연계</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+/* ============================================================
+   공용 템플릿 (SHARED TEMPLATE) — cell_size_simulation.html 기준
+   ============================================================ */
+:root {
+  --bg: #EFECE4;
+  --paper: #FBFAF6;
+  --ink: #21262B;
+  --ink-soft: #62696F;
+  --line: #D9D3C4;
+  --core: #F4EEDD;
+  --accent: #2F8F94;
+  --accent-dark: #1F6669;
+  --warn: #B5523B;
+  --gold: #C2932B;
+  --mono: 'JetBrains Mono', 'Pretendard', monospace;
+
+  /* 감수분열 1/2차 테마 컬러 */
+  --m1-color: #2F8F94;
+  --m2-color: #8E44AD;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  padding: 28px 16px 60px;
+  line-height: 1.5;
+}
+
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+header { margin-bottom: 22px; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent-dark);
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.eyebrow-badge {
+  background: var(--core);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  font-size: 11px;
+}
+h1 {
+  font-size: 26px;
+  margin: 0 0 8px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.lead {
+  color: var(--ink-soft);
+  font-size: 14.5px;
+  max-width: 820px;
+  margin: 0;
+}
+
+.panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  position: relative;
+}
+
+/* 감수 1/2분열 상단 대분류 토글 */
+.division-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.div-tab-btn {
+  flex: 1;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.div-tab-btn:hover {
+  background: var(--core);
+  color: var(--ink);
+}
+.div-tab-btn.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+.div-tab-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.2);
+}
+
+/* 단계 버튼 바 (10단계) */
+.stage-nav {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.stage-steps {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 5px;
+}
+@media (max-width: 1050px) {
+  .stage-steps {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+@media (max-width: 580px) {
+  .stage-steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.step-btn {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.step-btn:hover {
+  border-color: var(--accent);
+  background: #F4F1EA;
+}
+.step-btn.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.step-btn.m1-step.active {
+  background: var(--ink);
+}
+.step-btn.m2-step.active {
+  background: #2C223B;
+  border-color: #2C223B;
+}
+.step-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+.step-btn.active .step-num {
+  color: var(--gold);
+  opacity: 1;
+}
+.step-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* 재생 및 슬라이더 컨트롤 */
+.playback-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 6px;
+}
+.buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+button {
+  font-family: 'Pretendard', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  border-radius: 9px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: opacity .15s, background .15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+button.secondary {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+}
+button.secondary:hover {
+  background: var(--core);
+  border-color: var(--ink-soft);
+}
+button.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+}
+button:hover { opacity: .88; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.slider-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 220px;
+}
+.slider-group label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.slider-group .val {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  min-width: 50px;
+}
+input[type='range'] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  outline: none;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--paper);
+  box-shadow: 0 0 0 1px var(--accent);
+  cursor: pointer;
+}
+input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--paper);
+  cursor: pointer;
+}
+
+/* 메인 뷰어 레이아웃 */
+.viewer-layout {
+  display: grid;
+  grid-template-columns: 1.65fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .viewer-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.viewer-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+#canvas-wrap {
+  position: relative;
+  width: 100%;
+  height: 65vh;
+  min-height: 540px;
+}
+#canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.sim-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 13px;
+  background: var(--paper);
+  z-index: 5;
+}
+
+/* 3D 뷰어 위 플로팅 오버레이 */
+.floating-overlay {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 2;
+  pointer-events: none;
+}
+.floating-badge {
+  pointer-events: auto;
+  background: rgba(251, 250, 246, 0.92);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--line);
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+.floating-badge .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.floating-controls {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+.floating-btn {
+  background: rgba(251, 250, 246, 0.9);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.floating-btn:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+  background: var(--paper);
+}
+
+/* 우측 상세 학습 패널 */
+.info-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stage-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+}
+.stage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+}
+.stage-title-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.stage-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-dark);
+  background: rgba(47, 143, 148, 0.12);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.stage-title {
+  font-size: 19px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.stage-alias {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.stage-desc {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+
+/* 주요 특징 체크리스트 */
+.traits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.trait-item {
+  font-size: 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--ink-soft);
+}
+.trait-item b {
+  color: var(--ink);
+}
+.trait-icon {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+/* 읽기 수치 및 관찰 포인트 */
+.readout {
+  border-top: 1px dashed var(--line);
+  padding-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.readout .item {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+.readout .item span:first-child { color: var(--ink-soft); }
+.readout .item span:last-child { font-weight: 700; color: var(--ink); }
+
+/* 교과서 개념 정리 박스 */
+.concept-box {
+  background: var(--core);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.concept-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.concept-body {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 0;
+}
+.concept-body b {
+  color: var(--ink);
+}
+
+/* 하단 비교 및 개념 카드 */
+.bottom-section {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 860px) {
+  .bottom-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+.table-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  overflow-x: auto;
+}
+.table-card h3 {
+  font-size: 16px;
+  margin: 0 0 12px;
+  font-weight: 800;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+table.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  text-align: center;
+}
+table.comp-table th, table.comp-table td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+}
+table.comp-table th {
+  background: var(--core);
+  font-weight: 700;
+  color: var(--ink);
+}
+table.comp-table tr td:first-child {
+  font-weight: 700;
+  background: #FAF8F2;
+}
+
+.qa-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+}
+.qa-card h3 {
+  font-size: 16px;
+  margin: 0 0 10px;
+  font-weight: 800;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.qa-item {
+  margin-bottom: 12px;
+}
+.qa-q {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  margin-bottom: 3px;
+}
+.qa-a {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  background: var(--core);
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+.qa-a b { color: var(--ink); }
+
+footer {
+  margin-top: 36px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  text-align: center;
+  font-family: var(--mono);
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">
+      <span>Science 3 · Chapter 5. Reproduction & Genetics</span>
+      <span class="eyebrow-badge">중3 과학 교과서 모형 연계</span>
+    </p>
+    <h1>생식세포가 만들어지는 과정 (감수 분열)</h1>
+    <p class="lead">
+      생식세포는 세포 분열이 두 번 연속해서 일어나(감수 1분열, 감수 2분열) 만들어져요. 
+      염색체 수가 모세포의 절반으로 줄어드는 감수 분열 과정을 3D로 함께 살펴봅시다.
+    </p>
+  </header>
+
+  <!-- 단계 선택 탭 & 재생 제어 -->
+  <section class="panel stage-nav">
+    <div class="division-tabs">
+      <button class="div-tab-btn active" id="tab-m1">
+        <span>감수 1분열 (Meiosis I)</span>
+        <span class="div-tab-badge">염색체 수 반감 (2n → n)</span>
+      </button>
+      <button class="div-tab-btn" id="tab-m2">
+        <span>감수 2분열 (Meiosis II)</span>
+        <span class="div-tab-badge">염색 분체 분리 (n → n)</span>
+      </button>
+    </div>
+
+    <div class="stage-steps" id="step-buttons">
+      <!-- 1분열 5단계 -->
+      <div class="step-btn m1-step active" data-step="0">
+        <span class="step-num">STAGE 1</span>
+        <span class="step-name">분열 전 (간기)</span>
+      </div>
+      <div class="step-btn m1-step" data-step="1">
+        <span class="step-num">STAGE 2</span>
+        <span class="step-name">전기 1 (접합)</span>
+      </div>
+      <div class="step-btn m1-step" data-step="2">
+        <span class="step-num">STAGE 3</span>
+        <span class="step-name">중기 1</span>
+      </div>
+      <div class="step-btn m1-step" data-step="3">
+        <span class="step-num">STAGE 4</span>
+        <span class="step-name">후기 1 (상동 분리)</span>
+      </div>
+      <div class="step-btn m1-step" data-step="4">
+        <span class="step-num">STAGE 5</span>
+        <span class="step-name">말기 1 (2개 세포)</span>
+      </div>
+      <!-- 2분열 5단계 -->
+      <div class="step-btn m2-step" data-step="5">
+        <span class="step-num">STAGE 6</span>
+        <span class="step-name">전기 2</span>
+      </div>
+      <div class="step-btn m2-step" data-step="6">
+        <span class="step-num">STAGE 7</span>
+        <span class="step-name">중기 2</span>
+      </div>
+      <div class="step-btn m2-step" data-step="7">
+        <span class="step-num">STAGE 8</span>
+        <span class="step-name">후기 2 (분체 분리)</span>
+      </div>
+      <div class="step-btn m2-step" data-step="8">
+        <span class="step-num">STAGE 9</span>
+        <span class="step-name">말기 2</span>
+      </div>
+      <div class="step-btn m2-step" data-step="9">
+        <span class="step-num">STAGE 10</span>
+        <span class="step-name">생식세포 (4개)</span>
+      </div>
+    </div>
+
+    <div class="playback-bar">
+      <div class="buttons">
+        <button id="btn-play">
+          <span id="play-icon">▶</span>
+          <span id="play-text">연속 재생</span>
+        </button>
+        <button id="btn-prev" class="secondary">◀ 이전</button>
+        <button id="btn-next" class="secondary">다음 ▶</button>
+        <button id="btn-autorotate" class="secondary">⟳ 회전</button>
+        <button id="btn-reset-cam" class="secondary">⟲ 시점 초기화</button>
+      </div>
+
+      <div class="slider-group">
+        <label for="step-slider">진행 단계</label>
+        <input type="range" id="step-slider" min="0" max="9" step="0.01" value="0" />
+        <span class="val" id="step-val">1.0단계</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 메인 3D 뷰어 및 정보 패널 -->
+  <section class="viewer-layout">
+    <div class="viewer-card">
+      <div id="canvas-wrap">
+        <div class="sim-loading" id="loading">3D 감수 분열 모형 생성 중…</div>
+        
+        <div class="floating-overlay">
+          <div class="floating-badge">
+            <span class="dot"></span>
+            <span id="overlay-step-title">1단계: 분열 전 (모세포)</span>
+          </div>
+          <div class="floating-badge" style="font-size:11px; color:var(--ink-soft); font-family:var(--mono);">
+            염색체 수: <b id="overlay-chr-count" style="color:var(--ink); margin-left:4px;">2n = 4</b>
+          </div>
+          <div class="floating-badge" style="font-size:11px; color:var(--ink-soft); font-family:var(--mono);">
+            세포 수: <b id="overlay-cell-count" style="color:var(--ink); margin-left:4px;">1개</b>
+          </div>
+        </div>
+
+        <div class="floating-controls">
+          <button class="floating-btn" id="btn-toggle-labels">라벨 표시</button>
+          <button class="floating-btn" id="btn-toggle-cutaway">세포막 투명도</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 우측 상세 학습 패널 -->
+    <div class="info-panel">
+      <div class="stage-card">
+        <div class="stage-header">
+          <div class="stage-title-wrap">
+            <span class="stage-badge" id="info-badge">STAGE 1</span>
+            <h2 class="stage-title" id="info-title">분열 전 (간기)</h2>
+          </div>
+          <span class="stage-alias" id="info-alias">Interphase · 감수 1분열</span>
+        </div>
+
+        <p class="stage-desc" id="info-desc">
+          세포 분열이 일어나기 전 모세포는 크기가 커지고 유전 물질인 <b>DNA가 2배로 복제</b>됩니다. 
+          핵막이 뚜렷하며 염색체가 실처럼 풀어진 상태(염색사)로 존재합니다.
+        </p>
+
+        <ul class="traits-list" id="info-traits">
+          <li class="trait-item">
+            <span class="trait-icon">✓</span>
+            <div><b>핵막 상태:</b> 뚜렷하게 관찰됨 (핵 내부 보호)</div>
+          </li>
+          <li class="trait-item">
+            <span class="trait-icon">✓</span>
+            <div><b>염색체 형태:</b> 실처럼 풀어진 염색사 상태 (DNA 복제)</div>
+          </li>
+          <li class="trait-item">
+            <span class="trait-icon">✓</span>
+            <div><b>염색체 수 / DNA:</b> 2n = 4 (상동 염색체 쌍 존재)</div>
+          </li>
+        </ul>
+
+        <div class="readout">
+          <div class="item">
+            <span>세포 수</span>
+            <span id="ro-cell-num">1개</span>
+          </div>
+          <div class="item">
+            <span>염색체 수</span>
+            <span id="ro-chr-num">2n = 4</span>
+          </div>
+          <div class="item">
+            <span>DNA 상대량</span>
+            <span id="ro-dna-amount">1 → 2 (복제)</span>
+          </div>
+          <div class="item">
+            <span>핵심 행동</span>
+            <span id="ro-chr-act">DNA 복제 진행</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 교과서 개념 포인트 -->
+      <div class="concept-box">
+        <div class="concept-title">
+          <span>💡 교과서 핵심 포인트</span>
+        </div>
+        <p class="concept-body" id="info-concept">
+          감수 분열은 세포 분열이 2회 연속해서 일어나며, 감수 1분열 후기에 상동 염색체가 분리되어 염색체 수가 절반(2n → n)으로 줄어듭니다!
+        </p>
+      </div>
+
+      <!-- 모형 범례 -->
+      <div class="panel" style="padding:14px 18px;">
+        <div style="font-size:12px; font-weight:700; color:var(--ink-soft); font-family:var(--mono); text-transform:uppercase; margin-bottom:8px;">
+          Model Legend
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:6px 12px; font-size:12px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <div style="width:12px; height:12px; border-radius:3px; background:#367CD2;"></div>
+            <span>상동 염색체 (파랑)</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <div style="width:12px; height:12px; border-radius:3px; background:#D84D47;"></div>
+            <span>상동 염색체 (빨강)</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <div style="width:12px; height:12px; border-radius:3px; background:#76B8BA;"></div>
+            <span>방추사</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 하단: 체세포 분열 vs 감수 분열 비교 & Q&A -->
+  <section class="bottom-section">
+    <div class="table-card">
+      <h3><span>📊</span> 체세포 분열과 감수 분열 비교 (중3 과학 교과서)</h3>
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>구분</th>
+            <th>체세포 분열</th>
+            <th>감수 분열 (생식세포 분열)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>분열 횟수</td>
+            <td>1회</td>
+            <td><b>연속 2회</b> (감수 1·2분열)</td>
+          </tr>
+          <tr>
+            <td>딸세포 수</td>
+            <td>2개</td>
+            <td><b>4개</b></td>
+          </tr>
+          <tr>
+            <td>염색체 수 변화</td>
+            <td>변화 없음 (2n → 2n)</td>
+            <td><b>절반으로 감소 (2n → n)</b></td>
+          </tr>
+          <tr>
+            <td>상동염색체 접합</td>
+            <td>일어나지 않음</td>
+            <td><b>감수 1분열 전기에 접합 (2가 염색체)</b></td>
+          </tr>
+          <tr>
+            <td>분리 대상</td>
+            <td>염색 분체 분리</td>
+            <td>1분열: <b>상동염색체</b> / 2분열: <b>염색분체</b></td>
+          </tr>
+          <tr>
+            <td>분열 의의</td>
+            <td>생장, 재생, 조직 수리</td>
+            <td><b>세대마다 염색체 수 일정 유지</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="qa-card">
+      <h3><span>📖</span> 교과서 핵심 질의응답</h3>
+      <div class="qa-item">
+        <div class="qa-q">Q. 상동 염색체란 무엇인가요?</div>
+        <div class="qa-a">
+          체세포 속에 들어 있는 <b>모양과 크기가 같은 염색체 쌍</b>으로, 하나는 아버지로부터, 다른 하나는 어머니로부터 물려받은 것입니다.
+        </div>
+      </div>
+      <div class="qa-item">
+        <div class="qa-q">Q. 감수 분열에서 염색체 수가 절반으로 줄어드는 까닭은?</div>
+        <div class="qa-a">
+          감수 1분열에서 <b>상동 염색체가 접합했다가 분리</b>되어 각각 다른 딸세포로 들어가기 때문입니다.
+        </div>
+      </div>
+      <div class="qa-item">
+        <div class="qa-q">Q. 왜 생식세포는 염색체 수가 절반이어야 할까요?</div>
+        <div class="qa-a">
+          수정 시 정자(n)와 난자(n)가 결합하여 <b>수정란(2n)</b>이 되므로, 대를 거듭해도 자손의 염색체 수가 모체와 똑같이 유지될 수 있습니다.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    생식세포 분열(감수 분열) 3D 인터랙티브 시뮬레이션 · 중학교 3학년 과학 교과서 연계 모형
+  </footer>
+
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ============================================================
+   생식세포 분열(감수 분열) 3D 시뮬레이션 (Meiosis Simulation)
+   교과서 [그림 5-3] 감수 1분열, 감수 2분열 10단계 구현
+   ============================================================ */
+
+// 10단계 상세 데이터
+const STAGES_DATA = [
+  // --- 감수 1분열 (1~5) ---
+  {
+    step: 0,
+    div: 1,
+    title: '분열 전 (간기)',
+    alias: 'Interphase · 감수 1분열',
+    badge: 'STAGE 1 (1분열)',
+    desc: '세포가 생장하며 유전 물질인 <b>DNA가 2배로 복제</b>됩니다. 뚜렷한 핵막 속에 유전 물질이 실처럼 풀어진 상태(염색사)로 존재합니다.',
+    traits: [
+      { name: '핵막 상태', val: '뚜렷하게 관찰됨 (핵 내부 보호)' },
+      { name: '염색체 형태', val: '실처럼 풀어진 염색사 상태 (DNA 복제)' },
+      { name: '방추사', val: '아직 형성되지 않음' }
+    ],
+    ro: { cellNum: '1개', chrNum: '2n = 4', dna: '1 → 2 (복제)', act: 'DNA 복제 완료' },
+    concept: '분열 전 간기에 DNA가 2배로 복제됩니다. 하지만 감수 2분열 전에는 간기가 없어 DNA가 복제되지 않습니다!'
+  },
+  {
+    step: 1,
+    div: 1,
+    title: '전기 1 (상동 접합)',
+    alias: 'Prophase I · 2가 염색체 형성',
+    badge: 'STAGE 2 (1분열)',
+    desc: '핵막이 사라지며, 모양과 크기가 같은 <b>상동 염색체가 서로 결합(접합)</b>하여 나타납니다. 이를 <b>2가 염색체(4분 염색체)</b>라고 합니다.',
+    traits: [
+      { name: '핵막 상태', val: '핵막이 서서히 소실됨' },
+      { name: '염색체 형태', val: '상동 염색체끼리 짝을 지어 결합함 (2가 염색체 2쌍 형성)' },
+      { name: '방추사', val: '양극의 중심체에서 방추사가 형성되기 시작함' }
+    ],
+    ro: { cellNum: '1개', chrNum: '2n = 4', dna: '2 (복제 상태)', act: '상동 염색체 접합' },
+    concept: '체세포 분열에서는 일어나지 않는 감수 분열만의 가장 특별한 현상! 상동 염색체끼리 찰떡같이 달라붙어 2가 염색체를 만듭니다.'
+  },
+  {
+    step: 2,
+    div: 1,
+    title: '중기 1 (적도면 배열)',
+    alias: 'Metaphase I · 2열 배열',
+    badge: 'STAGE 3 (1분열)',
+    desc: '<b>결합한 상동 염색체 쌍이 세포 가운데(적도면)에 2열로 나란히 배열</b>합니다. 양극에서 뻗어 나온 방추사가 각 상동 염색체의 동원체에 연결됩니다.',
+    traits: [
+      { name: '핵막 상태', val: '완전히 사라짐' },
+      { name: '염색체 배열', val: '상동 염색체 쌍이 적도면에 나란히 2열로 배열' },
+      { name: '방추사', val: '각 상동 염색체의 동원체에 방추사가 결합' }
+    ],
+    ro: { cellNum: '1개', chrNum: '2n = 4', dna: '2', act: '상동 쌍 중앙 2열 배열' },
+    concept: '체세포 분열 중기는 염색체가 1열로 배열되지만, 감수 1분열 중기에는 결합한 상동 염색체가 짝을 지어 2열로 배열됩니다.'
+  },
+  {
+    step: 3,
+    div: 1,
+    title: '후기 1 (상동 분리)',
+    alias: 'Anaphase I · 염색체 수 반감!',
+    badge: 'STAGE 4 (1분열)',
+    desc: '<b>상동 염색체가 분리</b>되어, 방추사에 끌려 세포의 양쪽 끝(양극)으로 이동합니다. 이때 <b>염색 분체는 분리되지 않고</b> 통째로 이동합니다!',
+    traits: [
+      { name: '핵막 상태', val: '없음' },
+      { name: '분리 대상', val: '상동 염색체 분리 (염색 분체는 아직 결합 유지!)' },
+      { name: '결과적 의미', val: '염색체 수가 2n에서 n으로 반감되는 결정적 순간!' }
+    ],
+    ro: { cellNum: '1개 (양극 이동)', chrNum: '2n → n (양쪽 각 2개)', dna: '양쪽으로 분배', act: '상동 염색체 분리' },
+    concept: '★ 감수 분열의 핵심! 염색 분체가 아닌 [상동 염색체]가 통째로 분리되므로, 양극으로 나뉘는 순간 염색체 수가 절반(2n=4 → n=2)으로 줄어듭니다!'
+  },
+  {
+    step: 4,
+    div: 1,
+    title: '말기 1 및 세포질 분열',
+    alias: 'Telophase I · 딸세포 2개',
+    badge: 'STAGE 5 (1분열 완료)',
+    desc: '핵막이 일시적으로 나타나고 세포질이 나누어져 <b>딸세포 2개</b>가 만들어집니다. 각 딸세포의 염색체 수는 모세포의 절반인 <b>n = 2</b>가 됩니다.',
+    traits: [
+      { name: '세포질 분열', val: '세포막이 함입되어 딸세포 2개로 분리' },
+      { name: '염색체 수', val: '각 딸세포당 n = 2 (염색체 수 절반 감소 완료)' },
+      { name: '다음 단계', val: 'DNA 복제(간기) 없이 곧바로 감수 2분열 시작' }
+    ],
+    ro: { cellNum: '2개 형성', chrNum: 'n = 2 (반감 완료)', dna: '세포당 1씩 분배', act: '감수 1분열 완료' },
+    concept: '감수 1분열 결과 만들어진 딸세포 2개는 각각 염색체 수가 2개(n=2)입니다. 곧이어 DNA 복제 없이 감수 2분열로 직행합니다.'
+  },
+
+  // --- 감수 2분열 (6~10) ---
+  {
+    step: 5,
+    div: 2,
+    title: '전기 2 (2차 분열 시작)',
+    alias: 'Prophase II · 간기 없음',
+    badge: 'STAGE 6 (2분열)',
+    desc: '두 개의 딸세포에서 각각 분열이 진행됩니다. <b>간기(DNA 복제) 없이 곧바로</b> 핵막이 사라지고, 두 가닥의 염색 분체로 이루어진 염색체 2개가 나타납니다.',
+    traits: [
+      { name: '세포 상태', val: '2개의 세포에서 동시에 분열 진행' },
+      { name: 'DNA 복제', val: '일어나지 않음 (간기 생략)' },
+      { name: '염색체 수', val: '각 세포당 n = 2 (2개의 염색 분체 보유)' }
+    ],
+    ro: { cellNum: '2개 동시 진행', chrNum: '각 n = 2', dna: '세포당 1', act: '2분열 진입 (복제 없음)' },
+    concept: '감수 2분열은 체세포 분열과 진행 방식이 완전히 같습니다! 이미 염색체 수가 반감되었으므로 여기서는 염색 분체만 나눕니다.'
+  },
+  {
+    step: 6,
+    div: 2,
+    title: '중기 2 (적도면 배열)',
+    alias: 'Metaphase II · 1열 배열',
+    badge: 'STAGE 7 (2분열)',
+    desc: '두 세포 각각에서 <b>염색체가 세포 가운데(적도면)에 1열로 나란히 배열</b>합니다. 방추사가 각 염색체의 동원체에 연결됩니다.',
+    traits: [
+      { name: '핵막 상태', val: '없음' },
+      { name: '염색체 배열', val: '각 세포의 적도면에 염색체 2개가 1열로 나란히 배열' },
+      { name: '방추사', val: '각 염색체의 동원체 양쪽에 방추사 결합' }
+    ],
+    ro: { cellNum: '2개', chrNum: '각 n = 2', dna: '세포당 1', act: '적도면 1열 배열' },
+    concept: '체세포 분열 중기처럼 염색체가 적도면에 1열로 배열되지만, 염색체 수는 모세포의 절반(n=2)입니다.'
+  },
+  {
+    step: 7,
+    div: 2,
+    title: '후기 2 (염색 분체 분리)',
+    alias: 'Anaphase II · 분체 분리',
+    badge: 'STAGE 8 (2분열)',
+    desc: '각 염색체의 <b>두 염색 분체가 분리</b>되어, 방추사에 끌려 양쪽 끝으로 이동합니다. 체세포 분열 후기와 같은 방식으로 V자 모양으로 끌려갑니다.',
+    traits: [
+      { name: '분리 대상', val: '염색 분체 분리 (두 가닥이 갈라짐)' },
+      { name: '염색체 수 변화', val: '염색 분체만 나뉘므로 염색체 수는 n으로 유지' },
+      { name: '이동 형태', val: '동원체가 앞서고 팔이 끌려가는 V자 형태' }
+    ],
+    ro: { cellNum: '2개 (양극 이동)', chrNum: '각 극당 n = 2', dna: '절반으로 분배 (0.5)', act: '염색 분체 분리' },
+    concept: '1분열에서는 [상동 염색체]가 분리되었지만, 2분열에서는 [염색 분체]가 분리됩니다. 이 구분을 꼭 기억하세요!'
+  },
+  {
+    step: 8,
+    div: 2,
+    title: '말기 2 및 세포질 분열',
+    alias: 'Telophase II · 4개로 분열',
+    badge: 'STAGE 9 (2분열 완료)',
+    desc: '양 끝에 모인 염색체 주위로 핵막이 나타나고 염색체가 풀립니다. 두 세포의 세포질이 각각 나뉘어 <b>총 4개의 딸세포</b>가 만들어집니다.',
+    traits: [
+      { name: '세포질 분열', val: '2개의 세포가 각각 분열하여 총 4개 세포 형성' },
+      { name: '핵막', val: '4개의 새로운 핵막이 형성됨' },
+      { name: '염색체 형태', val: '염색체가 다시 실처럼 풀리기 시작함' }
+    ],
+    ro: { cellNum: '총 4개로 분할', chrNum: '각 n = 2', dna: '각 세포당 0.5', act: '세포질 분열 완료' },
+    concept: '연속 2회의 분열이 모두 끝나면서 모세포 1개로부터 마침내 4개의 딸세포가 완성됩니다.'
+  },
+  {
+    step: 9,
+    div: 2,
+    title: '생식세포 형성 (완료)',
+    alias: 'Gametes · 정자 / 난자 완성',
+    badge: 'STAGE 10 (최종 완료)',
+    desc: '분열이 완전히 끝나 <b>모세포에 비해 염색체 수(n=2)와 DNA양이 절반으로 줄어든 4개의 생식세포(정자 또는 난자)</b>가 완성됩니다!',
+    traits: [
+      { name: '결과', val: '염색체 수가 절반(n=2)인 생식세포 4개 완성' },
+      { name: '유전적 의의', val: '수정 시 부모로부터 n씩 물려받아 자손의 염색체 수 2n 유지' },
+      { name: '생식세포 형태', val: '동물에서는 정자 또는 난자로 분화함' }
+    ],
+    ro: { cellNum: '최종 4개 완성', chrNum: 'n = 2 (모세포의 1/2)', dna: '모세포의 1/2', act: '정자/난자 완성' },
+    concept: '감수 분열을 통해 만들어진 생식세포는 염색체 수가 절반(n)입니다. 나중에 정자(n)와 난자(n)가 만나 수정란(2n)이 되므로, 대를 거듭해도 사람의 염색체 수는 항상 46개(2n)로 유지됩니다!'
+  }
+];
+
+// Three.js 환경 구성
+const canvasWrap = document.getElementById('canvas-wrap');
+const loadingEl = document.getElementById('loading');
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xFBFAF6); // 공통 템플릿 --paper 컬러
+
+const camera = new THREE.PerspectiveCamera(
+  38,
+  canvasWrap.clientWidth / canvasWrap.clientHeight,
+  0.1,
+  100
+);
+const INITIAL_CAM_POS = new THREE.Vector3(0, 1.4, 9.8);
+camera.position.copy(INITIAL_CAM_POS);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(canvasWrap.clientWidth, canvasWrap.clientHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+canvasWrap.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 4.0;
+controls.maxDistance = 22;
+controls.target.set(0, 0, 0);
+controls.autoRotate = false;
+controls.autoRotateSpeed = 1.2;
+
+// 조명 세팅
+scene.add(new THREE.AmbientLight(0xfff8ee, 0.85));
+
+const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+keyLight.position.set(6, 8, 7);
+scene.add(keyLight);
+
+const fillLight = new THREE.DirectionalLight(0xddeeff, 0.6);
+fillLight.position.set(-7, -2, 5);
+scene.add(fillLight);
+
+const backLight = new THREE.DirectionalLight(0xffeedd, 0.4);
+backLight.position.set(0, -6, -6);
+scene.add(backLight);
+
+/* ============================================================
+   3D 감수 분열 구조물 구축
+   - 염색체 모델링: mitosis.html과 완벽하게 동일한 형상
+     (상단 V자 단완, 중앙 동원체 협착 접촉, 하단 U자 아치 평행 장완, 크로마틴 노이즈 질감)
+   ============================================================ */
+
+const mainGroup = new THREE.Group();
+scene.add(mainGroup);
+
+// 공통 재질
+const cellMembraneMat = new THREE.MeshPhysicalMaterial({
+  color: 0x9bc2d4,
+  transmission: 0.82,
+  opacity: 0.38,
+  transparent: true,
+  roughness: 0.25,
+  metalness: 0.05,
+  depthWrite: false,
+  side: THREE.DoubleSide
+});
+
+const nucleusMat = new THREE.MeshPhysicalMaterial({
+  color: 0x9b59b6,
+  transmission: 0.65,
+  opacity: 0.48,
+  transparent: true,
+  roughness: 0.35,
+  depthWrite: false,
+  side: THREE.DoubleSide
+});
+
+// 절차적 크로마틴 노이즈 텍스처 (체세포 분열과 동일)
+function createChromosomeNoiseTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, 128, 256);
+
+  const imgData = ctx.getImageData(0, 0, 128, 256);
+  const data = imgData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const v = 205 + Math.floor(Math.random() * 50);
+    data[i] = v;
+    data[i+1] = v;
+    data[i+2] = v;
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2, 4);
+  return tex;
+}
+const chrNoiseTex = createChromosomeNoiseTexture();
+
+// 염색분체 가닥 생성 (사용자 교과서 모형 100% 동일)
+function createChromatidBranch(length, radius, color, isLeft) {
+  const group = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({
+    color: color,
+    roughness: 0.32,
+    metalness: 0.12,
+    bumpMap: chrNoiseTex,
+    bumpScale: 0.035
+  });
+
+  const sign = isLeft ? -1 : 1;
+  const pLength = length * 0.40;
+  const qLength = length * 0.58;
+
+  // 1. 위쪽 단완 (p-arm) V자
+  const topGeo = new THREE.CapsuleGeometry(radius, pLength, 12, 16);
+  const topMesh = new THREE.Mesh(topGeo, mat);
+  const topAngle = sign * -0.19;
+  topMesh.rotation.z = topAngle;
+  topMesh.position.set(
+    sign * (radius * 0.45 + Math.sin(0.19) * pLength * 0.5),
+    0.06 * length + Math.cos(0.19) * pLength * 0.5,
+    0
+  );
+  group.add(topMesh);
+
+  // 2. 아래쪽 장완 (q-arm) U자 평행
+  const botGeo = new THREE.CapsuleGeometry(radius * 1.05, qLength, 12, 16);
+  const botMesh = new THREE.Mesh(botGeo, mat);
+  const botAngle = sign * 0.03;
+  botMesh.rotation.z = botAngle;
+  botMesh.position.set(
+    sign * (radius * 1.25),
+    0.06 * length - (qLength * 0.52),
+    0
+  );
+  group.add(botMesh);
+
+  // 3. 동원체 조인트 (Centromere)
+  const midGeo = new THREE.SphereGeometry(radius * 0.85, 16, 16);
+  const midMesh = new THREE.Mesh(midGeo, mat);
+  midMesh.position.set(sign * radius * 0.45, 0.06 * length, 0);
+  group.add(midMesh);
+
+  return {
+    group,
+    topMesh,
+    botMesh,
+    midMesh,
+    mat,
+    pLength,
+    qLength,
+    isLeft,
+    initTopPos: topMesh.position.clone(),
+    initBotPos: botMesh.position.clone(),
+    initTopRot: topMesh.rotation.clone(),
+    initBotRot: botMesh.rotation.clone()
+  };
+}
+
+function createChromosome(isLong, isBlue, id) {
+  const chromGroup = new THREE.Group();
+  const length = isLong ? 1.75 : 1.15;
+  const radius = isLong ? 0.125 : 0.105;
+  const color = isBlue ? 0x367CD2 : 0xD84D47; // 파랑 / 빨강
+
+  const armA = createChromatidBranch(length, radius, color, true);
+  const armB = createChromatidBranch(length, radius, color, false);
+
+  chromGroup.add(armA.group);
+  chromGroup.add(armB.group);
+
+  // 동원체 마커
+  const centroMat = new THREE.MeshStandardMaterial({
+    color: 0xF5B041,
+    roughness: 0.25,
+    metalness: 0.35
+  });
+  const centromereA = new THREE.Mesh(new THREE.SphereGeometry(radius * 0.72, 16, 16), centroMat);
+  const centromereB = new THREE.Mesh(new THREE.SphereGeometry(radius * 0.72, 16, 16), centroMat);
+  centromereA.position.set(-radius * 0.55, 0.06 * length, 0);
+  centromereB.position.set(radius * 0.55, 0.06 * length, 0);
+  chromGroup.add(centromereA);
+  chromGroup.add(centromereB);
+
+  return {
+    group: chromGroup,
+    armA,
+    armB,
+    centromereA,
+    centromereB,
+    centroMat,
+    isLong,
+    isBlue,
+    id,
+    length,
+    radius
+  };
+}
+
+// 4개 상동 염색체 생성 (2n = 4)
+// 상동 쌍 1: 긴 파랑 (L-Blue) + 긴 빨강 (L-Red)
+// 상동 쌍 2: 짧은 파랑 (S-Blue) + 짧은 빨강 (S-Red)
+const chromosomes = [
+  createChromosome(true, true, 'chr-L-blue'),   // 0: 긴 파랑
+  createChromosome(true, false, 'chr-L-red'),   // 1: 긴 빨강 (상동 쌍 1)
+  createChromosome(false, true, 'chr-S-blue'),  // 2: 짧은 파랑
+  createChromosome(false, false, 'chr-S-red')   // 3: 짧은 빨강 (상동 쌍 2)
+];
+
+chromosomes.forEach(c => mainGroup.add(c.group));
+
+// 세포막들: 1개 모세포 -> 2개 세포 (1분열) -> 4개 세포 (2분열)
+// 1. 단일 모세포막 (1분열용)
+const cellSphereGeo = new THREE.SphereGeometry(2.8, 64, 48);
+const cellMembrane1 = new THREE.Mesh(cellSphereGeo, cellMembraneMat);
+mainGroup.add(cellMembrane1);
+
+// 2. 1분열 딸세포 2개 (좌 / 우)
+const cellMembraneL = new THREE.Mesh(new THREE.SphereGeometry(1.95, 48, 36), cellMembraneMat);
+const cellMembraneR = new THREE.Mesh(new THREE.SphereGeometry(1.95, 48, 36), cellMembraneMat);
+cellMembraneL.visible = false;
+cellMembraneR.visible = false;
+mainGroup.add(cellMembraneL);
+mainGroup.add(cellMembraneR);
+
+// 3. 2분열 4개 딸세포 (TL, BL, TR, BR)
+const daughterCells4 = [];
+const smallCellGeo = new THREE.SphereGeometry(1.35, 36, 28);
+for (let i = 0; i < 4; i++) {
+  const c = new THREE.Mesh(smallCellGeo, cellMembraneMat);
+  c.visible = false;
+  mainGroup.add(c);
+  daughterCells4.push(c);
+}
+
+// 핵막들
+const nucleusMain = new THREE.Mesh(new THREE.SphereGeometry(1.7, 48, 36), nucleusMat);
+mainGroup.add(nucleusMain);
+
+const nucleusL = new THREE.Mesh(new THREE.SphereGeometry(1.15, 36, 28), nucleusMat);
+const nucleusR = new THREE.Mesh(new THREE.SphereGeometry(1.15, 36, 28), nucleusMat);
+nucleusL.visible = false;
+nucleusR.visible = false;
+mainGroup.add(nucleusL);
+mainGroup.add(nucleusR);
+
+const nucleus4 = [];
+for (let i = 0; i < 4; i++) {
+  const nm = new THREE.Mesh(new THREE.SphereGeometry(0.85, 32, 24), nucleusMat);
+  nm.visible = false;
+  mainGroup.add(nm);
+  nucleus4.push(nm);
+}
+
+// 염색사 (간기 및 최종 생식세포용)
+function createChromatinCloud(count, radius, color1, color2, withCopies = false) {
+  const group = new THREE.Group();
+  group.userData.copies = [];
+  for (let i = 0; i < count; i++) {
+    const points = [];
+    const baseP = new THREE.Vector3(
+      (Math.random() - 0.5) * radius * 1.5,
+      (Math.random() - 0.5) * radius * 1.5,
+      (Math.random() - 0.5) * radius * 1.5
+    );
+    points.push(baseP);
+    let cur = baseP.clone();
+    for (let j = 0; j < 6; j++) {
+      cur = cur.clone().add(new THREE.Vector3(
+        (Math.random() - 0.5) * 0.42,
+        (Math.random() - 0.5) * 0.42,
+        (Math.random() - 0.5) * 0.42
+      ));
+      if (cur.length() > radius * 0.95) cur.normalize().multiplyScalar(radius * 0.85);
+      points.push(cur);
+    }
+    const curve = new THREE.CatmullRomCurve3(points);
+    const tubeGeo = new THREE.TubeGeometry(curve, 14, 0.02, 6, false);
+    const col = (i % 2 === 0) ? color1 : color2;
+    const mat = new THREE.MeshStandardMaterial({
+      color: col,
+      roughness: 0.4,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.75
+    });
+    const tube = new THREE.Mesh(tubeGeo, mat);
+    group.add(tube);
+
+    if (withCopies) {
+      // DNA 복제: 원본과 똑같은 모양의 가닥이 원본 자리에서 흐리게 나타나 옆으로 비켜나며 진해진다
+      const copy = new THREE.Mesh(tubeGeo, mat.clone());
+      copy.visible = false;
+      copy.userData.offset = new THREE.Vector3(
+        (Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5)
+      ).normalize().multiplyScalar(0.15);
+      copy.userData.delay = Math.random() * 0.45;   // 가닥마다 복제 시작 시점을 조금씩 다르게
+      group.add(copy);
+      group.userData.copies.push(copy);
+    }
+  }
+  return group;
+}
+
+// 복제 진행도(0~1)에 따라 복제 가닥을 옆으로 옮기며 진하게 한다. baseOpacity = 그 순간 원본 가닥의 불투명도
+function setReplication(cloud, r, baseOpacity) {
+  cloud.userData.copies.forEach(copy => {
+    const local = smoothstep(0, 1, (r - copy.userData.delay) / 0.55);
+    copy.visible = local > 0;
+    copy.position.copy(copy.userData.offset).multiplyScalar(local);
+    copy.material.opacity = baseOpacity * (0.15 + 0.85 * local);
+  });
+}
+
+// 복제 전에는 파랑·빨강 가닥 21개, 간기 동안 복제되어 42개가 된다
+const chromatinMain = createChromatinCloud(21, 1.45, 0x367CD2, 0xD84D47, true);
+mainGroup.add(chromatinMain);
+
+// 4개 생식세포 내부의 염색사
+const chromatin4 = [
+  createChromatinCloud(16, 0.72, 0x367CD2, 0x367CD2), // 1번: 파랑계열
+  createChromatinCloud(16, 0.72, 0x367CD2, 0x367CD2), // 2번: 파랑계열
+  createChromatinCloud(16, 0.72, 0xD84D47, 0xD84D47), // 3번: 빨강계열
+  createChromatinCloud(16, 0.72, 0xD84D47, 0xD84D47)  // 4번: 빨강계열
+];
+chromatin4.forEach(cm => {
+  cm.visible = false;
+  mainGroup.add(cm);
+});
+
+// 중심체 및 방추사
+const centroMat = new THREE.MeshStandardMaterial({
+  color: 0x1F6669,
+  roughness: 0.3,
+  metalness: 0.4
+});
+function makeCentrosomeMesh() {
+  const g = new THREE.Group();
+  const c1 = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.24, 10), centroMat);
+  const c2 = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.24, 10), centroMat);
+  c2.rotation.x = Math.PI / 2;
+  g.add(c1);
+  g.add(c2);
+  const halo = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 14), new THREE.MeshBasicMaterial({
+    color: 0x2F8F94,
+    transparent: true,
+    opacity: 0.35
+  }));
+  g.add(halo);
+  return g;
+}
+
+// 1분열용 좌우 중심체
+const centroM1_L = makeCentrosomeMesh();
+const centroM1_R = makeCentrosomeMesh();
+centroM1_L.position.set(-2.4, 0, 0);
+centroM1_R.position.set(2.4, 0, 0);
+centroM1_L.visible = false;
+centroM1_R.visible = false;
+mainGroup.add(centroM1_L);
+mainGroup.add(centroM1_R);
+
+// 2분열용 상하 중심체들 (좌측 세포용 상하, 우측 세포용 상하)
+const centroM2_LT = makeCentrosomeMesh();
+const centroM2_LB = makeCentrosomeMesh();
+const centroM2_RT = makeCentrosomeMesh();
+const centroM2_RB = makeCentrosomeMesh();
+[centroM2_LT, centroM2_LB, centroM2_RT, centroM2_RB].forEach(c => {
+  c.visible = false;
+  mainGroup.add(c);
+});
+
+// 방추사 라인 세그먼트
+const SPINDLE_COUNT = 48;
+const spindleGeo = new THREE.BufferGeometry();
+const spindlePositions = new Float32Array(SPINDLE_COUNT * 2 * 3);
+spindleGeo.setAttribute('position', new THREE.BufferAttribute(spindlePositions, 3));
+const spindleMat = new THREE.LineBasicMaterial({
+  color: 0x1F6669,
+  transparent: true,
+  opacity: 0.9,
+  linewidth: 1.5
+});
+const spindleLines = new THREE.LineSegments(spindleGeo, spindleMat);
+spindleLines.frustumCulled = false; // 정점이 매 프레임 바뀌므로 초기 bounding sphere로 컬링되지 않게
+spindleLines.renderOrder = 2;       // 반투명 세포막 위에 그려지도록
+mainGroup.add(spindleLines);
+
+/* ============================================================
+   감수 분열 10단계 시뮬레이션 로직 (t: 0.0 ~ 9.0)
+   ============================================================ */
+
+let currentT = 0.0;
+let targetT = 0.0;
+let isPlaying = false;
+let playSpeed = 0.007;
+// 간기 DNA 복제 — 재생 타임라인 t 0~0.35 구간(간기 → 전기로 넘어가기 전)에서 진행된다.
+// 1단계 화면(t=0)은 복제 전, 재생하거나 슬라이더를 움직여 이 구간을 지나면 가닥 수가 2배가 된다.
+const REPLICATION_END = 0.35;
+const REPLICATION_PLAY_RATE = 0.35;  // 연속 재생 때 이 구간은 느리게(약 2.4초) 지나가 복제가 보이게 한다
+function replicationProgress(t) {
+  return Math.max(0, Math.min(1, t / REPLICATION_END));
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function smoothstep(min, max, value) {
+  const x = Math.max(0, Math.min(1, (value - min) / (max - min)));
+  return x * x * (3 - 2 * x);
+}
+
+// 분체 기본 형태 복원
+function resetArmShape(chr) {
+  chr.armA.group.position.set(0, 0, 0);
+  chr.armB.group.position.set(0, 0, 0);
+  chr.centromereA.position.set(-chr.radius * 0.55, 0.06 * chr.length, 0);
+  chr.centromereB.position.set(chr.radius * 0.55, 0.06 * chr.length, 0);
+  [chr.armA, chr.armB].forEach(arm => {
+    arm.topMesh.position.copy(arm.initTopPos);
+    arm.topMesh.rotation.copy(arm.initTopRot);
+    arm.botMesh.position.copy(arm.initBotPos);
+    arm.botMesh.rotation.copy(arm.initBotRot);
+  });
+}
+
+// 상동 접합(2가 염색체) 형태: s = 0(기본) ~ 1(접합)
+// 안쪽 분체(상대 상동 염색체 쪽)는 곧게 펴서 상대와 맞닿게 하고,
+// 바깥쪽 분체는 바깥으로 기울여 4가닥이 구분되게 한다.
+// inSign: 상대 상동 염색체가 있는 방향 (+1 = 오른쪽)
+function applySynapsis(chr, s, inSign) {
+  resetArmShape(chr);
+  if (s <= 0) return;
+  const r = chr.radius;
+  const y0 = 0.06 * chr.length;
+  [chr.armA, chr.armB].forEach(arm => {
+    const sign = arm.isLeft ? -1 : 1;
+    const inner = sign === inSign;
+
+    // 단완: 동원체(y0)를 축으로 위쪽 캡슐
+    const topA = inner ? 0 : -sign * 0.32;
+    const topPX = inner ? sign * 0.5 * r : sign * 0.45 * r;
+    const topH = arm.pLength * 0.5;
+    arm.topMesh.position.x = lerp(arm.initTopPos.x, topPX - Math.sin(topA) * topH, s);
+    arm.topMesh.position.y = lerp(arm.initTopPos.y, y0 + Math.cos(topA) * topH, s);
+    arm.topMesh.rotation.z = lerp(arm.initTopRot.z, topA, s);
+
+    // 장완: 동원체(y0)를 축으로 아래쪽 캡슐
+    const botA = inner ? 0 : sign * 0.16;
+    const botPX = inner ? sign * 0.75 * r : sign * 1.1 * r;
+    const botH = arm.qLength * 0.52;
+    arm.botMesh.position.x = lerp(arm.initBotPos.x, botPX + Math.sin(botA) * botH, s);
+    arm.botMesh.position.y = lerp(arm.initBotPos.y, y0 - Math.cos(botA) * botH, s);
+    arm.botMesh.rotation.z = lerp(arm.initBotRot.z, botA, s);
+  });
+}
+
+// 접합 시 상동 염색체 중심 간 거리(절반): 안쪽 분체끼리 살짝 맞닿는 거리
+function synapsisOffset(chr) {
+  return chr.radius * 1.72;
+}
+
+// 2분열 후기: 염색 분체 분리 + V자 굴곡
+function applySeparation(chr, sepDist, bend) {
+  resetArmShape(chr);
+  chr.armA.group.position.set(-sepDist, 0, 0);
+  chr.armB.group.position.set(sepDist, 0, 0);
+  chr.centromereA.position.set(-chr.radius * 0.55 - sepDist, 0.06 * chr.length, 0);
+  chr.centromereB.position.set(chr.radius * 0.55 + sepDist, 0.06 * chr.length, 0);
+
+  const L = chr.length;
+  const a = chr.armA, b = chr.armB;
+  a.topMesh.rotation.z = a.initTopRot.z - bend * 1.15;
+  a.topMesh.position.x = a.initTopPos.x + bend * L * 0.24;
+  a.botMesh.rotation.z = a.initBotRot.z + bend * 1.15;
+  a.botMesh.position.x = a.initBotPos.x + bend * L * 0.28;
+  b.topMesh.rotation.z = b.initTopRot.z + bend * 1.15;
+  b.topMesh.position.x = b.initTopPos.x - bend * L * 0.24;
+  b.botMesh.rotation.z = b.initBotRot.z - bend * 1.15;
+  b.botMesh.position.x = b.initBotPos.x - bend * L * 0.28;
+}
+
+// 전기 1: 2가 염색체가 흩어져 있는 배치 / 중기 1: 적도면 정렬 배치 (쌍 중심, 기울기)
+const PAIR_PROPHASE = [
+  { x: -0.55, y: 0.3, z: 0.25, rot: 0.3 },
+  { x: 0.7, y: -0.35, z: -0.2, rot: -0.4 }
+];
+const PAIR_METAPHASE = [
+  { x: 0, y: 0.65, z: 0, rot: 0 },
+  { x: 0, y: -0.65, z: 0, rot: 0 }
+];
+// 2분열 전기: 세포 안에 두 염색체를 나란히 (세포 중심 기준 x)
+const M2_PRO = { long: -0.45, short: 0.5 };
+// 2분열 중기: 가로로 누운 염색체가 적도면(y=0)에 서로 겹치지 않게 1열 배열
+const M2_PLATE = { long: -0.81, short: 0.98 };
+const M2_SCALE = 0.85;
+
+// 10단계 핵심 씬 업데이트 함수
+function updateSceneAt(t) {
+  t = Math.max(0, Math.min(9, t));
+
+  // -------------------------------------------------------------
+  // 1. 세포막 (세포 분열 1회: 1 -> 2개 / 2회: 2 -> 4개)
+  // -------------------------------------------------------------
+  if (t < 3.2) {
+    // 1분열 단일 세포막 (후기에서 가로로 늘어남)
+    cellMembrane1.visible = true;
+    cellMembraneL.visible = false;
+    cellMembraneR.visible = false;
+    daughterCells4.forEach(c => c.visible = false);
+
+    const stretchX = (t >= 2.0 && t <= 3.2) ? 1.0 + (t - 2.0) * 0.18 : 1.0;
+    const shrinkYZ = (t >= 2.0 && t <= 3.2) ? 1.0 - (t - 2.0) * 0.08 : 1.0;
+    cellMembrane1.scale.set(stretchX, shrinkYZ, shrinkYZ);
+    cellMembrane1.position.set(0, 0, 0);
+
+  } else if (t >= 3.2 && t < 4.2) {
+    // 1분열 말기: 가운데가 잘록해지며 2개로 분할
+    cellMembrane1.visible = false;
+    cellMembraneL.visible = true;
+    cellMembraneR.visible = true;
+    daughterCells4.forEach(c => c.visible = false);
+
+    const factor = (t - 3.2) / 1.0;
+    const posX = lerp(0.85, 1.8, factor);
+    cellMembraneL.position.set(-posX, 0, 0);
+    cellMembraneR.position.set(posX, 0, 0);
+    cellMembraneL.scale.set(1, 1, 1);
+    cellMembraneR.scale.set(1, 1, 1);
+
+  } else if (t >= 4.2 && t < 7.2) {
+    // 2분열 전반부: 2개의 독립된 딸세포 유지 (X = -1.8, +1.8)
+    cellMembrane1.visible = false;
+    cellMembraneL.visible = true;
+    cellMembraneR.visible = true;
+    daughterCells4.forEach(c => c.visible = false);
+
+    const stretchY = (t >= 6.0 && t <= 7.2) ? 1.0 + (t - 6.0) * 0.18 : 1.0;
+    const shrinkXZ = (t >= 6.0 && t <= 7.2) ? 1.0 - (t - 6.0) * 0.08 : 1.0;
+    cellMembraneL.position.set(-1.8, 0, 0);
+    cellMembraneR.position.set(1.8, 0, 0);
+    cellMembraneL.scale.set(shrinkXZ, stretchY, shrinkXZ);
+    cellMembraneR.scale.set(shrinkXZ, stretchY, shrinkXZ);
+
+  } else if (t >= 7.2 && t < 8.4) {
+    // 2분열 말기: 2개 세포가 각각 세로(Y축)로 잘록하게 나뉘며 4개 형성
+    cellMembrane1.visible = false;
+    cellMembraneL.visible = false;
+    cellMembraneR.visible = false;
+    daughterCells4.forEach(c => c.visible = true);
+
+    const factor = (t - 7.2) / 1.2;
+    const posY = lerp(0.65, 1.45, factor);
+
+    // TL, BL, TR, BR
+    daughterCells4[0].position.set(-1.8, posY, 0);
+    daughterCells4[1].position.set(-1.8, -posY, 0);
+    daughterCells4[2].position.set(1.8, posY, 0);
+    daughterCells4[3].position.set(1.8, -posY, 0);
+
+  } else {
+    // 최종 생식세포 4개 완성
+    cellMembrane1.visible = false;
+    cellMembraneL.visible = false;
+    cellMembraneR.visible = false;
+    daughterCells4.forEach(c => c.visible = true);
+
+    daughterCells4[0].position.set(-1.8, 1.45, 0);
+    daughterCells4[1].position.set(-1.8, -1.45, 0);
+    daughterCells4[2].position.set(1.8, 1.45, 0);
+    daughterCells4[3].position.set(1.8, -1.45, 0);
+  }
+
+  // -------------------------------------------------------------
+  // 2. 핵막 제어 (1분열 소실 -> 1분열말 형성 -> 2분열 소실 -> 최종 형성)
+  // -------------------------------------------------------------
+  if (t < 0.4) {
+    // 1분열 간기: 뚜렷함
+    nucleusMain.visible = true;
+    nucleusMat.opacity = 0.52;
+    nucleusL.visible = false;
+    nucleusR.visible = false;
+    nucleus4.forEach(n => n.visible = false);
+  } else if (t >= 0.4 && t < 1.2) {
+    // 1분열 전기: 핵막 소실
+    nucleusMain.visible = true;
+    const fade = 1 - (t - 0.4) / 0.8;
+    nucleusMat.opacity = Math.max(0, 0.52 * fade);
+    nucleusL.visible = false;
+    nucleusR.visible = false;
+    nucleus4.forEach(n => n.visible = false);
+  } else if (t >= 1.2 && t < 3.5) {
+    // 1분열 중기, 후기: 핵막 없음
+    nucleusMain.visible = false;
+    nucleusL.visible = false;
+    nucleusR.visible = false;
+    nucleus4.forEach(n => n.visible = false);
+  } else if (t >= 3.5 && t < 4.8) {
+    // 1분열 말기 ~ 2분열 전기: 일시적 2개 핵막 나타났다 사라짐
+    nucleusMain.visible = false;
+    nucleusL.visible = true;
+    nucleusR.visible = true;
+    nucleus4.forEach(n => n.visible = false);
+
+    const fade = (t < 4.2) ? (t - 3.5) / 0.7 : 1 - (t - 4.2) / 0.6;
+    nucleusMat.opacity = Math.max(0, 0.48 * fade);
+    nucleusL.position.set(-1.8, 0, 0);
+    nucleusR.position.set(1.8, 0, 0);
+  } else if (t >= 4.8 && t < 7.5) {
+    // 2분열 중기, 후기: 핵막 없음
+    nucleusMain.visible = false;
+    nucleusL.visible = false;
+    nucleusR.visible = false;
+    nucleus4.forEach(n => n.visible = false);
+  } else {
+    // 2분열 말기 ~ 최종 생식세포: 4개의 새로운 핵막 완성
+    nucleusMain.visible = false;
+    nucleusL.visible = false;
+    nucleusR.visible = false;
+    nucleus4.forEach(n => n.visible = true);
+
+    const fade = (t < 8.4) ? (t - 7.5) / 0.9 : 1.0;
+    nucleusMat.opacity = Math.min(0.52, 0.52 * fade);
+    nucleus4[0].position.set(-1.8, 1.45, 0);
+    nucleus4[1].position.set(-1.8, -1.45, 0);
+    nucleus4[2].position.set(1.8, 1.45, 0);
+    nucleus4[3].position.set(1.8, -1.45, 0);
+  }
+
+  // -------------------------------------------------------------
+  // 3. 염색사 (Chromatin)
+  // -------------------------------------------------------------
+  if (t < 1.0) {
+    chromatinMain.visible = true;
+    const op = (t < 0.4) ? 0.75 : 0.75 * (1 - (t - 0.4) / 0.6);
+    chromatinMain.children.forEach(m => m.material.opacity = Math.max(0, op));
+    setReplication(chromatinMain, replicationProgress(t), Math.max(0, op));
+    chromatin4.forEach(cm => cm.visible = false);
+  } else if (t >= 1.0 && t < 8.0) {
+    chromatinMain.visible = false;
+    chromatin4.forEach(cm => cm.visible = false);
+  } else {
+    chromatinMain.visible = false;
+    chromatin4.forEach(cm => cm.visible = true);
+    const op = (t < 8.8) ? 0.75 * ((t - 8.0) / 0.8) : 0.75;
+    chromatin4.forEach(cm => cm.children.forEach(m => m.material.opacity = Math.min(0.75, op)));
+    chromatin4[0].position.set(-1.8, 1.45, 0);
+    chromatin4[1].position.set(-1.8, -1.45, 0);
+    chromatin4[2].position.set(1.8, 1.45, 0);
+    chromatin4[3].position.set(1.8, -1.45, 0);
+  }
+
+  // -------------------------------------------------------------
+  // 4. 중심체 및 방추사 제어
+  // -------------------------------------------------------------
+  if (t >= 0.8 && t < 4.2) {
+    // 감수 1분열 좌우 중심체 활성화
+    centroM1_L.visible = true;
+    centroM1_R.visible = true;
+    const stretch = (t >= 2.0 && t <= 3.8) ? lerp(2.2, 2.7, (t - 2.0) / 1.8) : 2.2;
+    centroM1_L.position.x = -stretch;
+    centroM1_R.position.x = stretch;
+    [centroM2_LT, centroM2_LB, centroM2_RT, centroM2_RB].forEach(c => c.visible = false);
+  } else if (t >= 5.2 && t < 8.0) {
+    // 감수 2분열 상하 중심체들 활성화
+    centroM1_L.visible = false;
+    centroM1_R.visible = false;
+    [centroM2_LT, centroM2_LB, centroM2_RT, centroM2_RB].forEach(c => c.visible = true);
+    centroM2_LT.position.set(-1.8, 1.8, 0);
+    centroM2_LB.position.set(-1.8, -1.8, 0);
+    centroM2_RT.position.set(1.8, 1.8, 0);
+    centroM2_RB.position.set(1.8, -1.8, 0);
+  } else {
+    centroM1_L.visible = false;
+    centroM1_R.visible = false;
+    [centroM2_LT, centroM2_LB, centroM2_RT, centroM2_RB].forEach(c => c.visible = false);
+  }
+
+  // -------------------------------------------------------------
+  // 5. 염색체의 단계별 이동 및 변형 (감수 1분열 -> 감수 2분열)
+  // -------------------------------------------------------------
+  const positionsAttr = spindleGeo.attributes.position;
+  let spindleIdx = 0;
+
+  // 4개 염색체 타겟 위치 정의
+  // 염색체 0: 긴 파랑 (L-blue)
+  // 염색체 1: 긴 빨강 (L-red)  — 상동 쌍 1
+  // 염색체 2: 짧은 파랑 (S-blue)
+  // 염색체 3: 짧은 빨강 (S-red)  — 상동 쌍 2
+
+  chromosomes.forEach((chr, i) => {
+    // 0단계: 간기 (염색체 보이지 않음)
+    if (t < 0.4) {
+      chr.group.visible = false;
+      chr.group.scale.setScalar(0.001);
+      return;
+    }
+
+    chr.group.visible = true;
+    chr.group.scale.setScalar(1.0);
+    chr.group.position.z = 0;
+    chr.group.rotation.set(0, 0, 0);
+    [chr.armA.mat, chr.armB.mat, chr.centroMat].forEach(m => {
+      m.transparent = false;
+      m.opacity = 1;
+    });
+
+    const pairIdx = (i < 2) ? 0 : 1;
+    const dir = (i % 2 === 0) ? -1 : 1;   // 파랑(0,2) 왼쪽 / 빨강(1,3) 오른쪽
+    const inSign = -dir;                   // 상대 상동 염색체 방향
+    const synOff = synapsisOffset(chr);
+
+    // 쌍 중심/기울기 기준으로 상동 염색체 배치
+    function placeInPair(c, offset) {
+      const cs = Math.cos(c.rot), sn = Math.sin(c.rot);
+      chr.group.position.set(c.x + dir * offset * cs, c.y + dir * offset * sn, c.z);
+      chr.group.rotation.z = c.rot;
+    }
+
+    // ---------------------------------------------------------
+    // A. 감수 1분열 전기 (t: 0.4 ~ 1.0): 상동 염색체가 다가와 접합 → 2가 염색체
+    // ---------------------------------------------------------
+    if (t < 1.0) {
+      chr.group.scale.setScalar(Math.max(0.001, smoothstep(0.4, 0.7, t)));
+      const a = smoothstep(0.55, 1.0, t);
+      applySynapsis(chr, a, inSign);
+      placeInPair(PAIR_PROPHASE[pairIdx], lerp(0.85, synOff, a));
+
+    // ---------------------------------------------------------
+    // B. 감수 1분열 중기 (t: 1.0 ~ 2.0): 2가 염색체 적도면 배열
+    // ---------------------------------------------------------
+    } else if (t < 2.0) {
+      applySynapsis(chr, 1, inSign);
+      const m = smoothstep(1.0, 1.6, t);
+      const from = PAIR_PROPHASE[pairIdx], to = PAIR_METAPHASE[pairIdx];
+      placeInPair({
+        x: lerp(from.x, to.x, m),
+        y: lerp(from.y, to.y, m),
+        z: lerp(from.z, to.z, m),
+        rot: lerp(from.rot, to.rot, m)
+      }, synOff);
+
+    // ---------------------------------------------------------
+    // C. 감수 1분열 후기 (t: 2.0 ~ 3.0): ★ 상동 염색체 분리! (염색분체 X)
+    // ---------------------------------------------------------
+    } else if (t <= 3.0) {
+      const p = smoothstep(2.0, 3.0, t);
+      applySynapsis(chr, 1 - smoothstep(2.0, 2.35, t), inSign);
+      chr.group.position.set(lerp(dir * synOff, dir * 1.35, p), PAIR_METAPHASE[pairIdx].y, 0);
+      // 상동 염색체 전체가 끌려가면서 약간의 각도 회전
+      chr.group.rotation.z = -dir * p * 0.15;
+
+    // ---------------------------------------------------------
+    // D. 감수 1분열 말기 (t: 3.0 ~ 4.0): 딸세포 2개로 분할
+    // ---------------------------------------------------------
+    } else if (t <= 4.0) {
+      resetArmShape(chr);
+      const p = smoothstep(3.0, 4.0, t);
+      const proX = chr.isLong ? M2_PRO.long : M2_PRO.short;
+      chr.group.position.set(lerp(dir * 1.35, dir * 1.8 + proX, p), lerp(PAIR_METAPHASE[pairIdx].y, 0, p), 0);
+      chr.group.rotation.z = -dir * (1 - p) * 0.15;
+
+    // ---------------------------------------------------------
+    // E. 감수 2분열 전기 (t: 4.0 ~ 5.0): 각 세포당 2개 염색체 관찰
+    // ---------------------------------------------------------
+    } else if (t <= 5.0) {
+      resetArmShape(chr);
+      chr.group.position.set(dir * 1.8 + (chr.isLong ? M2_PRO.long : M2_PRO.short), 0, 0);
+
+    // ---------------------------------------------------------
+    // F. 감수 2분열 중기 (t: 5.0 ~ 6.0): 각 세포 적도면(y=0)에 1열 배열
+    // ---------------------------------------------------------
+    } else if (t <= 6.0) {
+      resetArmShape(chr);
+      const f = smoothstep(5.0, 5.7, t);
+      const proX = chr.isLong ? M2_PRO.long : M2_PRO.short;
+      const plateX = chr.isLong ? M2_PLATE.long : M2_PLATE.short;
+      chr.group.position.set(dir * 1.8 + lerp(proX, plateX, f), 0, 0);
+      chr.group.scale.setScalar(lerp(1, M2_SCALE, f));
+      // 누워서 두 염색 분체가 위/아래 극을 향함
+      chr.group.rotation.z = f * Math.PI / 2;
+
+    // ---------------------------------------------------------
+    // G. 감수 2분열 후기 (t: 6.0 ~ 7.0): ★ 염색 분체 분리! (V자 상하 이동)
+    // ---------------------------------------------------------
+    } else if (t <= 7.0) {
+      const p = smoothstep(6.0, 7.0, t);
+      const plateX = chr.isLong ? M2_PLATE.long : M2_PLATE.short;
+      chr.group.position.set(dir * 1.8 + plateX, 0, 0);
+      chr.group.scale.setScalar(M2_SCALE);
+      chr.group.rotation.z = Math.PI / 2;
+      applySeparation(chr, p * 0.75, p * 0.42);
+
+    // ---------------------------------------------------------
+    // H. 감수 2분열 말기 ~ 생식세포 (t: 7.0 ~ 9.0): 4개 세포에 정착 & 풀림
+    // ---------------------------------------------------------
+    } else {
+      const p = smoothstep(7.0, 8.5, t);
+      // 작아진 생식세포 4개 안에 들어가도록 모으며 축소
+      const plateX = chr.isLong ? M2_PLATE.long : M2_PLATE.short;
+      chr.group.position.set(dir * 1.8 + plateX * lerp(1, 0.7, p), 0, 0);
+      chr.group.scale.setScalar(lerp(M2_SCALE, 0.65, p));
+      chr.group.rotation.z = Math.PI / 2;
+      applySeparation(chr, lerp(0.75, 2.0, p), 0.42);
+
+      // 말기에서 염색체가 실처럼 풀리며 페이드아웃
+      const fadeProgress = Math.max(0, Math.min(1.0, (t - 8.0) / 0.9));
+      const chrOpacity = Math.max(0, 1.0 - fadeProgress * 1.15);
+      chr.group.visible = (chrOpacity > 0.02);
+      [chr.armA.mat, chr.armB.mat, chr.centroMat].forEach(m => {
+        m.transparent = chrOpacity < 1;
+        m.opacity = chrOpacity;
+      });
+    }
+
+    // 방추사 동적 연결 (1분열 중기~후기: t=1.4 ~ 3.2)
+    if (t >= 1.4 && t < 3.2 && chr.group.visible) {
+      const tip = new THREE.Vector3();
+      // 극 쪽을 향한 바깥 동원체에 연결
+      (dir < 0 ? chr.centromereA : chr.centromereB).getWorldPosition(tip);
+      mainGroup.worldToLocal(tip);
+
+      // 상동 염색체 분리 견인 (파랑은 L로, 빨강은 R로)
+      const pole = (dir < 0 ? centroM1_L : centroM1_R).position;
+
+      positionsAttr.setXYZ(spindleIdx * 2, pole.x, pole.y, pole.z);
+      positionsAttr.setXYZ(spindleIdx * 2 + 1, tip.x, tip.y, tip.z);
+      spindleIdx++;
+    }
+
+    // 방추사 동적 연결 (2분열 중기~후기: t=5.4 ~ 7.2)
+    if (t >= 5.4 && t < 7.2 && chr.group.visible) {
+      const worldA = new THREE.Vector3();
+      const worldB = new THREE.Vector3();
+      chr.centromereA.getWorldPosition(worldA);
+      chr.centromereB.getWorldPosition(worldB);
+      mainGroup.worldToLocal(worldA);
+      mainGroup.worldToLocal(worldB);
+
+      // 회전(π/2) 후 armA(centromereA)는 아래, armB(centromereB)는 위쪽을 향함
+      const poleTop = (dir < 0 ? centroM2_LT : centroM2_RT).position;
+      const poleBot = (dir < 0 ? centroM2_LB : centroM2_RB).position;
+
+      positionsAttr.setXYZ(spindleIdx * 2, poleBot.x, poleBot.y, poleBot.z);
+      positionsAttr.setXYZ(spindleIdx * 2 + 1, worldA.x, worldA.y, worldA.z);
+      spindleIdx++;
+
+      positionsAttr.setXYZ(spindleIdx * 2, poleTop.x, poleTop.y, poleTop.z);
+      positionsAttr.setXYZ(spindleIdx * 2 + 1, worldB.x, worldB.y, worldB.z);
+      spindleIdx++;
+    }
+  });
+
+  // 미사용 방추사 정점 0으로 리셋
+  for (let k = spindleIdx * 2; k < SPINDLE_COUNT * 2; k++) {
+    positionsAttr.setXYZ(k, 0, 0, 0);
+  }
+  positionsAttr.needsUpdate = true;
+}
+
+// -------------------------------------------------------------
+// UI 바인딩 및 이벤트 처리
+// -------------------------------------------------------------
+const stepButtons = document.querySelectorAll('.step-btn');
+const stepSlider = document.getElementById('step-slider');
+const stepVal = document.getElementById('step-val');
+const btnPlay = document.getElementById('btn-play');
+const playIcon = document.getElementById('play-icon');
+const playText = document.getElementById('play-text');
+const btnPrev = document.getElementById('btn-prev');
+const btnNext = document.getElementById('btn-next');
+const btnAutorotate = document.getElementById('btn-autorotate');
+const btnResetCam = document.getElementById('btn-reset-cam');
+
+const tabM1 = document.getElementById('tab-m1');
+const tabM2 = document.getElementById('tab-m2');
+
+const overlayStepTitle = document.getElementById('overlay-step-title');
+const overlayChrCount = document.getElementById('overlay-chr-count');
+const overlayCellCount = document.getElementById('overlay-cell-count');
+
+const infoBadge = document.getElementById('info-badge');
+const infoTitle = document.getElementById('info-title');
+const infoAlias = document.getElementById('info-alias');
+const infoDesc = document.getElementById('info-desc');
+const infoTraits = document.getElementById('info-traits');
+const infoConcept = document.getElementById('info-concept');
+
+const roCellNum = document.getElementById('ro-cell-num');
+const roChrNum = document.getElementById('ro-chr-num');
+const roDnaAmount = document.getElementById('ro-dna-amount');
+const roChrAct = document.getElementById('ro-chr-act');
+
+function syncUI(stepIndex) {
+  const data = STAGES_DATA[stepIndex];
+  if (!data) return;
+
+  stepButtons.forEach((btn, idx) => {
+    btn.classList.toggle('active', idx === stepIndex);
+  });
+
+  // 상단 탭 상태 동기화
+  const isM2 = stepIndex >= 5;
+  tabM1.classList.toggle('active', !isM2);
+  tabM2.classList.toggle('active', isM2);
+
+  // 오버레이 및 텍스트 갱신
+  overlayStepTitle.textContent = `${stepIndex + 1}단계: ${data.title}`;
+  overlayChrCount.textContent = data.ro.chrNum;
+  overlayCellCount.textContent = data.ro.cellNum;
+
+  infoBadge.textContent = data.badge;
+  infoTitle.textContent = data.title;
+  infoAlias.textContent = data.alias;
+  infoDesc.innerHTML = data.desc;
+  infoConcept.innerHTML = data.concept;
+
+  roCellNum.textContent = data.ro.cellNum;
+  roChrNum.textContent = data.ro.chrNum;
+  roDnaAmount.textContent = data.ro.dna;
+  roChrAct.textContent = data.ro.act;
+
+  infoTraits.innerHTML = '';
+  data.traits.forEach(tr => {
+    const li = document.createElement('li');
+    li.className = 'trait-item';
+    li.innerHTML = `<span class="trait-icon">✓</span><div><b>${tr.name}:</b> ${tr.val}</div>`;
+    infoTraits.appendChild(li);
+  });
+}
+
+function setStep(targetStepIdx, animate = true) {
+  targetT = targetStepIdx;
+  if (!animate) {
+    currentT = targetStepIdx;
+    updateSceneAt(currentT);
+  }
+  stepSlider.value = targetStepIdx;
+  stepVal.textContent = `${(targetStepIdx + 1).toFixed(1)}단계`;
+  syncUI(Math.round(targetStepIdx));
+}
+
+stepButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    isPlaying = false;
+    updatePlayBtnState();
+    const s = parseInt(btn.dataset.step, 10);
+    setStep(s, true);
+  });
+});
+
+tabM1.addEventListener('click', () => {
+  isPlaying = false;
+  updatePlayBtnState();
+  setStep(0, true);
+});
+
+tabM2.addEventListener('click', () => {
+  isPlaying = false;
+  updatePlayBtnState();
+  setStep(5, true);
+});
+
+stepSlider.addEventListener('input', (e) => {
+  isPlaying = false;
+  updatePlayBtnState();
+  const val = parseFloat(e.target.value);
+  targetT = val;
+  currentT = val;
+  updateSceneAt(currentT);
+  stepVal.textContent = `${(val + 1).toFixed(1)}단계`;
+  syncUI(Math.min(9, Math.round(val)));
+});
+
+btnPrev.addEventListener('click', () => {
+  isPlaying = false;
+  updatePlayBtnState();
+  const currentStep = Math.round(targetT);
+  const prev = Math.max(0, currentStep - 1);
+  setStep(prev, true);
+});
+
+btnNext.addEventListener('click', () => {
+  isPlaying = false;
+  updatePlayBtnState();
+  const currentStep = Math.round(targetT);
+  const next = Math.min(9, currentStep + 1);
+  setStep(next, true);
+});
+
+function updatePlayBtnState() {
+  if (isPlaying) {
+    btnPlay.classList.add('active');
+    playIcon.textContent = '⏸';
+    playText.textContent = '일시 정지';
+  } else {
+    btnPlay.classList.remove('active');
+    playIcon.textContent = '▶';
+    playText.textContent = '연속 재생';
+  }
+}
+
+btnPlay.addEventListener('click', () => {
+  isPlaying = !isPlaying;
+  if (isPlaying && targetT >= 9.0) {
+    targetT = 0.0;
+    currentT = 0.0;
+  }
+  updatePlayBtnState();
+});
+
+btnResetCam.addEventListener('click', () => {
+  camera.position.copy(INITIAL_CAM_POS);
+  controls.target.set(0, 0, 0);
+  controls.update();
+});
+
+btnAutorotate.addEventListener('click', () => {
+  controls.autoRotate = !controls.autoRotate;
+  btnAutorotate.classList.toggle('active', controls.autoRotate);
+});
+
+let isCutaway = false;
+const btnToggleCutaway = document.getElementById('btn-toggle-cutaway');
+btnToggleCutaway.addEventListener('click', () => {
+  isCutaway = !isCutaway;
+  cellMembraneMat.opacity = isCutaway ? 0.15 : 0.38;
+  cellMembraneMat.needsUpdate = true;
+  btnToggleCutaway.classList.toggle('active', isCutaway);
+});
+
+let showLabels = true;
+const btnToggleLabels = document.getElementById('btn-toggle-labels');
+const overlayBox = document.querySelector('.floating-overlay');
+btnToggleLabels.addEventListener('click', () => {
+  showLabels = !showLabels;
+  overlayBox.style.display = showLabels ? 'flex' : 'none';
+  btnToggleLabels.classList.toggle('active', !showLabels);
+});
+
+window.addEventListener('resize', () => {
+  const w = canvasWrap.clientWidth;
+  const h = canvasWrap.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+
+const clock = new THREE.Clock();
+let lastSyncStep = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const delta = clock.getDelta();
+
+  if (isPlaying) {
+    const rate = targetT < REPLICATION_END ? REPLICATION_PLAY_RATE : 1;
+    targetT += playSpeed * 60 * Math.min(delta, 0.1) * rate;
+    if (targetT > 9.0) {
+      targetT = 9.0;
+      isPlaying = false;
+      updatePlayBtnState();
+    }
+    currentT = targetT;
+    stepSlider.value = currentT;
+    stepVal.textContent = `${(currentT + 1).toFixed(1)}단계`;
+  } else {
+    if (currentT < REPLICATION_END && targetT > currentT) {
+      // 단계 버튼·다음 버튼으로 간기를 지나갈 때도 복제 구간은 연속 재생과 같은 속도로 천천히 지나간다
+      currentT = Math.min(targetT, currentT + playSpeed * 60 * Math.min(delta, 0.1) * REPLICATION_PLAY_RATE);
+    } else {
+      // 부드러운 Lerp 이동
+      currentT = lerp(currentT, targetT, 0.12);
+    }
+  }
+
+  updateSceneAt(currentT);
+
+  const rounded = Math.min(9, Math.round(currentT));
+  if (rounded !== lastSyncStep) {
+    lastSyncStep = rounded;
+    syncUI(rounded);
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+// 초기화 시작
+updateSceneAt(0);
+syncUI(0);
+if (loadingEl) loadingEl.style.display = 'none';
+animate();
+
+</script>
+</body>
+</html>
