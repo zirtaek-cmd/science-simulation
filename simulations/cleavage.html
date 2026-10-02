@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>난할 시뮬레이션 — 수정란이 개체가 되는 과정</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+/* ============================================================
+   공용 템플릿 (SHARED TEMPLATE) — cell-division.html / mitosis.html 기준
+   ============================================================ */
+:root {
+  --bg: #EFECE4;
+  --paper: #FBFAF6;
+  --ink: #21262B;
+  --ink-soft: #62696F;
+  --line: #D9D3C4;
+  --core: #F4EEDD;
+  --accent: #2F8F94;
+  --accent-dark: #1F6669;
+  --accent-soft: #DCEFEF;
+  --warn: #B5523B;
+  --gold: #C2932B;
+  --mono: 'JetBrains Mono', 'Pretendard', monospace;
+
+  /* 세포 모형 컬러 */
+  --cell: #F2DCB5;
+  --cell-nucleus: #C4875A;
+  --cell-pick: #6FC4C7;
+  --cell-pick-nucleus: #1F6669;
+  --embryo-bg: #DCCDAE;
+  --soma: #CDD6DC;
+  --soma-edge: #8E9AA3;
+  --soma-nucleus: #62696F;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  padding: 28px 16px 60px;
+  line-height: 1.5;
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+
+header { margin-bottom: 22px; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent-dark);
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.eyebrow-badge {
+  background: var(--core);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  font-size: 11px;
+}
+h1 { font-size: 26px; margin: 0 0 8px; font-weight: 800; letter-spacing: -0.01em; }
+.lead { color: var(--ink-soft); font-size: 14.5px; max-width: 760px; margin: 0; }
+.lead b { color: var(--ink); }
+
+.panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+/* ---------- 발생 흐름 ---------- */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.flow .node {
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  transition: background .25s, color .25s, border-color .25s;
+}
+.flow .node.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.flow .node.next {
+  border-style: dashed;
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+.flow .arrow { color: var(--line); font-weight: 400; }
+
+/* ---------- 메인: 난할 ---------- */
+.main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(290px, 1fr);
+  gap: 20px;
+}
+.stage-card { padding: 16px 18px 18px; }
+.stage-card h2, .readout-card h2 {
+  font-size: 15px;
+  margin: 0 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; background: var(--accent); }
+.dot.soma { background: var(--soma-edge); }
+.sub { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); margin: 0 0 6px; }
+
+#embryo { width: 100%; height: auto; display: block; max-height: 470px; touch-action: manipulation; }
+
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 6px;
+}
+button {
+  font-family: 'Pretendard', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 9px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+button:hover { opacity: .82; }
+button:disabled { opacity: .35; cursor: default; }
+button.primary { background: var(--accent); border-color: var(--accent); font-size: 15px; padding: 11px 22px; }
+button.secondary { background: transparent; color: var(--ink); }
+button.ghost { background: transparent; color: var(--ink-soft); border-color: var(--line); font-weight: 600; }
+
+.pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.pill {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.pill.active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+/* 읽기 패널 */
+.readout-card { display: flex; flex-direction: column; gap: 14px; }
+.readout-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.mask-toggle { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-soft); cursor: pointer; user-select: none; }
+.mask-toggle input { accent-color: var(--accent); }
+
+.metric { border-top: 1px dashed var(--line); padding-top: 12px; }
+.metric:first-of-type { border-top: none; padding-top: 0; }
+.metric .label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.metric .row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.metric .big {
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.metric .note { font-size: 12.5px; color: var(--ink-soft); text-align: right; }
+.bar-track { height: 14px; background: var(--core); border-radius: 7px; overflow: hidden; border: 1px solid var(--line); margin-top: 6px; }
+.bar-fill { height: 100%; border-radius: 7px; background: var(--accent); transition: width .45s ease; }
+.bar-fill.whole { background: var(--gold); }
+
+.val { transition: color .2s; }
+.masked .val.hidden {
+  color: transparent;
+  position: relative;
+  cursor: pointer;
+  background: var(--core);
+  border-radius: 6px;
+  border: 1px dashed var(--line);
+  min-width: 2.2em;
+  display: inline-block;
+  text-align: center;
+}
+.masked .val.hidden::after {
+  content: "?";
+  position: absolute;
+  inset: 0;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.masked .bar-fill.hidden { width: 0 !important; }
+
+.explain {
+  margin-top: 16px;
+  font-size: 14.5px;
+  color: var(--ink-soft);
+  background: var(--core);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  min-height: 74px;
+}
+.explain b { color: var(--ink); }
+
+/* ---------- 비교 (보조) ---------- */
+.compare { margin-top: 26px; padding: 0; overflow: hidden; }
+.compare-toggle {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  color: var(--ink);
+  border: none;
+  border-radius: 0;
+  padding: 16px 20px;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.compare-toggle:hover { opacity: 1; background: var(--core); }
+.compare-toggle .tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-right: 8px;
+  font-weight: 600;
+}
+.compare-toggle .chev { transition: transform .2s; color: var(--ink-soft); }
+.compare.open .compare-toggle .chev { transform: rotate(180deg); }
+.compare-body { display: none; padding: 4px 20px 20px; border-top: 1px solid var(--line); }
+.compare.open .compare-body { display: block; }
+.compare-intro { font-size: 13.5px; color: var(--ink-soft); margin: 14px 0; }
+.compare-intro b { color: var(--ink); }
+
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.cmp-card { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 14px; background: #fff; }
+.cmp-card.cleave { border: 2px solid var(--accent); }
+.cmp-card h3 { margin: 0; font-size: 14px; display: flex; align-items: center; gap: 7px; }
+.cmp-card svg { width: 100%; height: 300px; display: block; }
+.cmp-status { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); min-height: 20px; margin-top: 2px; }
+.cmp-card.cleave .cmp-status { color: var(--accent-dark); }
+.cmp-read {
+  border-top: 1px dashed var(--line);
+  padding-top: 10px;
+  margin-top: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 14px;
+  font-size: 12.5px;
+}
+.cmp-read div { display: flex; justify-content: space-between; gap: 6px; }
+.cmp-read span:first-child { color: var(--ink-soft); }
+.cmp-read span:last-child { font-family: var(--mono); font-weight: 700; }
+.compare .controls { margin-top: 14px; }
+.time-note { font-size: 11.5px; color: var(--ink-soft); margin-top: 8px; }
+
+table.summary { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 13.5px; }
+table.summary th, table.summary td { border-bottom: 1px solid var(--line); padding: 9px 10px; text-align: left; vertical-align: top; }
+table.summary thead th { font-size: 12.5px; color: var(--ink-soft); font-weight: 700; }
+table.summary thead th.c-cleave { color: var(--accent-dark); }
+table.summary td.c-cleave { background: var(--accent-soft); font-weight: 700; }
+table.summary tbody th { font-weight: 600; color: var(--ink-soft); white-space: nowrap; }
+
+footer { margin-top: 30px; font-size: 11.5px; color: var(--ink-soft); text-align: center; }
+
+@media (max-width: 820px) {
+  .main { grid-template-columns: 1fr; }
+  .compare-grid { grid-template-columns: 1fr; }
+  h1 { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">
+      <span>Science 3 · Chapter 5. Reproduction & Genetics</span>
+      <span class="eyebrow-badge">5-1-4 수정란이 개체가 되는 과정</span>
+    </p>
+    <h1>난할 — 수정란은 어떻게 분열할까?</h1>
+    <p class="lead">
+      수정란은 초기에 세포 분열을 빠르게 반복하는데, 이를 <b>난할</b>이라고 해요.
+      난할이 진행될 때 <b>세포 수</b>, <b>세포 1개의 크기</b>, <b>배 전체의 크기</b>가 어떻게 변하는지 관찰해 봅시다.
+    </p>
+  </header>
+
+  <!-- 발생 흐름: 지금 보고 있는 단계 -->
+  <div class="flow" id="flow">
+    <span class="node" data-node="fert">수정</span><span class="arrow">→</span>
+    <span class="node" data-node="zygote">수정란</span><span class="arrow">→</span>
+    <span class="node" data-node="cleave">난할</span><span class="arrow">→</span>
+    <span class="node" data-node="soma">체세포 분열</span><span class="arrow">→</span>
+    <span class="node" data-node="organ">조직·기관 형성</span><span class="arrow">→</span>
+    <span class="node" data-node="body">개체</span>
+  </div>
+
+  <!-- ===================== 메인: 난할 ===================== -->
+  <section class="main">
+    <div class="panel stage-card">
+      <h2><span class="dot"></span>난할 관찰하기</h2>
+      <p class="sub">점선 = 처음 수정란의 크기</p>
+      <svg id="embryo" viewBox="-1.32 -1.24 2.64 2.5" aria-label="난할 모형"></svg>
+
+      <div class="controls">
+        <button id="btnBack" class="secondary">◀ 이전</button>
+        <button id="btnNext" class="primary">난할 1회 ▶</button>
+        <button id="btnAuto" class="secondary">자동 재생</button>
+        <button id="btnReset" class="ghost">⟲ 처음으로</button>
+      </div>
+      <div class="pills" id="pills"></div>
+    </div>
+
+    <div class="panel readout-card" id="readout">
+      <div class="readout-head">
+        <h2>무엇이 변할까?</h2>
+        <label class="mask-toggle"><input type="checkbox" id="maskToggle"> 숫자 가리기</label>
+      </div>
+
+      <div class="metric">
+        <div class="label">분열 횟수</div>
+        <div class="row"><span class="big"><span class="val" id="vDiv">0</span>회</span></div>
+      </div>
+
+      <div class="metric">
+        <div class="label">세포 수</div>
+        <div class="row"><span class="big"><span class="val" id="vCount">1</span>개</span></div>
+      </div>
+
+      <div class="metric">
+        <div class="label">세포 1개의 크기 <span style="font-weight:400">(색칠한 세포)</span></div>
+        <div class="row">
+          <span class="big"><span class="val" id="vSize">1</span></span>
+          <span class="note">수정란을 1로 볼 때</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="barSize" style="width:100%"></div></div>
+      </div>
+
+      <div class="metric">
+        <div class="label">배 전체의 크기</div>
+        <div class="row">
+          <span class="big"><span class="val" id="vWhole">1</span></span>
+          <span class="note">수정란과 거의 같다</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill whole" id="barWhole" style="width:100%"></div></div>
+      </div>
+
+      <div class="metric">
+        <div class="label">세포 1개의 염색체 수 <span style="font-weight:400">(사람)</span></div>
+        <div class="row">
+          <span class="big"><span class="val" id="vChrom">46</span>개</span>
+          <span class="note">수정란과 같다</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="explain" id="explain"></div>
+
+  <!-- ===================== 비교 (보조) ===================== -->
+  <section class="panel compare open" id="compare">
+    <button class="compare-toggle" id="compareToggle" aria-expanded="true">
+      <span><span class="tag">더 알아보기</span>비교해 보기 — 일반적인 체세포 분열과 무엇이 다를까?</span>
+      <span class="chev">▾</span>
+    </button>
+    <div class="compare-body">
+      <p class="compare-intro">
+        <b>난할도 체세포 분열</b>이에요. 그런데 일반적인 체세포 분열과 무엇이 다를까요?
+        두 경우 모두 <b>같은 크기의 세포 1개</b>에서 시작해 같은 배율로 그렸어요. (점선 = 처음 세포의 크기)
+      </p>
+
+      <div class="compare-grid">
+        <div class="cmp-card cleave">
+          <h3><span class="dot"></span>난할</h3>
+          <svg id="cmpCleave" viewBox="-3.7 -3.7 7.4 7.4"></svg>
+          <div class="cmp-status" id="stCleave">세포 1개</div>
+          <div class="cmp-read">
+            <div><span>분열 횟수</span><span id="cDivA">0회</span></div>
+            <div><span>세포 수</span><span id="cCountA">1개</span></div>
+            <div><span>세포 1개 크기</span><span id="cSizeA">1</span></div>
+            <div><span>전체 크기</span><span id="cWholeA">1</span></div>
+          </div>
+        </div>
+        <div class="cmp-card soma">
+          <h3><span class="dot soma"></span>일반적인 체세포 분열</h3>
+          <svg id="cmpSoma" viewBox="-3.7 -3.7 7.4 7.4"></svg>
+          <div class="cmp-status" id="stSoma">세포 1개</div>
+          <div class="cmp-read">
+            <div><span>분열 횟수</span><span id="cDivB">0회</span></div>
+            <div><span>세포 수</span><span id="cCountB">1개</span></div>
+            <div><span>세포 1개 크기</span><span id="cSizeB">1</span></div>
+            <div><span>전체 크기</span><span id="cWholeB">1</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="cmpStep" class="primary">한 번씩 분열하기</button>
+        <button id="cmpTime" class="secondary">같은 시간 동안 분열하기</button>
+        <button id="cmpReset" class="ghost">⟲ 처음으로</button>
+      </div>
+      <p class="time-note">※ 분열 속도는 차이를 보여 주기 위해 단순하게 나타냈어요. 크기는 넓이로 나타냈어요.</p>
+
+      <table class="summary">
+        <thead>
+          <tr><th></th><th class="c-cleave">난할</th><th>일반적인 체세포 분열</th></tr>
+        </thead>
+        <tbody>
+          <tr><th>분열 후 딸세포</th><td class="c-cleave">커지지 않고 바로 다시 분열한다</td><td>원래 크기만큼 커진 뒤 분열한다</td></tr>
+          <tr><th>세포 1개의 크기</th><td class="c-cleave">점점 작아진다</td><td>거의 같다</td></tr>
+          <tr><th>분열 속도</th><td class="c-cleave">빠르게 반복한다</td><td>난할보다 느리다</td></tr>
+          <tr><th>세포 수</th><td class="c-cleave">늘어난다</td><td>늘어난다</td></tr>
+          <tr><th>전체 크기</th><td class="c-cleave">수정란과 거의 같다</td><td>커진다</td></tr>
+          <tr><th>염색체 수</th><td class="c-cleave">변하지 않는다</td><td>변하지 않는다</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    난할 인터랙티브 시뮬레이션 · 중학교 3학년 과학 5-1-4 수정란이 개체가 되는 과정
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   1. 기하: 같은 넓이의 세포로 원(배)을 나누기 (가중 보로노이)
+   ============================================================ */
+const NS = 'http://www.w3.org/2000/svg';
+const MAX_K = 5;           // 메인: 32세포까지
+const CMP_MAX_K = 3;       // 비교: 8세포까지
+const GAP = 0.06;          // 세포 사이 틈
+const ROUND = 0.13;        // 모서리를 둥글게 하는 선 굵기
+
+const CIRC_N = 120;
+const circleCache = {};
+function circlePoly(r) {
+  if (circleCache[r]) return circleCache[r];
+  const p = [];
+  for (let i = 0; i < CIRC_N; i++) {
+    const a = i / CIRC_N * Math.PI * 2;
+    p.push({ x: r * Math.cos(a), y: r * Math.sin(a) });
+  }
+  return (circleCache[r] = p);
+}
+
+// 반평면 nx*x + ny*y <= c 로 다각형 자르기
+function clip(poly, nx, ny, c) {
+  const out = [];
+  const n = poly.length;
+  for (let i = 0; i < n; i++) {
+    const P = poly[i], Q = poly[(i + 1) % n];
+    const dp = nx * P.x + ny * P.y - c, dq = nx * Q.x + ny * Q.y - c;
+    if (dp <= 0) out.push(P);
+    if ((dp <= 0) !== (dq <= 0)) {
+      const t = dp / (dp - dq);
+      out.push({ x: P.x + (Q.x - P.x) * t, y: P.y + (Q.y - P.y) * t });
+    }
+  }
+  return out;
+}
+
+// i번 세포의 영역 (off(i,j): 이웃 j 쪽 경계를 안으로 당기는 거리)
+function cellPoly(S, W, i, rc, off) {
+  let poly = circlePoly(rc);
+  const si = S[i];
+  for (let j = 0; j < S.length; j++) {
+    if (j === i) continue;
+    const sj = S[j];
+    const dx = sj.x - si.x, dy = sj.y - si.y, d = Math.hypot(dx, dy);
+    if (d < 1e-9) continue;
+    const c = (sj.x * sj.x + sj.y * sj.y - si.x * si.x - si.y * si.y + W[i] - W[j]) / (2 * d) - (off ? off(i, j) : 0);
+    poly = clip(poly, dx / d, dy / d, c);
+    if (poly.length < 3) return null;
+  }
+  return poly;
+}
+
+// 넓이, 무게중심, 2차 모멘트
+function stats(p) {
+  let A = 0, cx = 0, cy = 0, xx = 0, yy = 0, xy = 0;
+  for (let i = 0; i < p.length; i++) {
+    const a = p[i], b = p[(i + 1) % p.length];
+    const cr = a.x * b.y - b.x * a.y;
+    A += cr;
+    cx += (a.x + b.x) * cr;
+    cy += (a.y + b.y) * cr;
+    xx += cr * (a.x * a.x + a.x * b.x + b.x * b.x);
+    yy += cr * (a.y * a.y + a.y * b.y + b.y * b.y);
+    xy += cr * (a.x * b.y + 2 * a.x * a.y + 2 * b.x * b.y + b.x * a.y);
+  }
+  A /= 2; cx /= 6 * A; cy /= 6 * A;
+  xx = xx / 12 / A - cx * cx;
+  yy = yy / 12 / A - cy * cy;
+  xy = xy / 24 / A - cx * cy;
+  return { A, cx, cy, xx, yy, xy };
+}
+
+// 세포들이 같은 넓이가 되도록 자리와 가중치를 맞춘다
+function relax(S, W, iters) {
+  const n = S.length, target = Math.PI / n;
+  for (let it = 0; it < iters; it++) {
+    const st = S.map((_, i) => { const p = cellPoly(S, W, i, 1); return p ? stats(p) : null; });
+    for (let i = 0; i < n; i++) {
+      const s = st[i];
+      if (!s) { W[i] += 0.05; continue; }
+      S[i] = { x: s.cx, y: s.cy };
+      W[i] += 0.3 * (target - s.A);
+    }
+    const m = W.reduce((a, b) => a + b, 0) / n;
+    for (let i = 0; i < n; i++) W[i] -= m;
+  }
+}
+
+function rng(seed) {
+  return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+}
+
+// 단계별 세포 배치: 각 세포는 긴 축 방향으로 둘로 나뉜다 (자식 = 2i, 2i+1)
+function buildStages(K) {
+  const r = rng(7);
+  const stages = [{ S: [{ x: 0, y: 0 }], W: [0] }];
+  for (let k = 0; k <= K; k++) {
+    const st = stages[k];
+    st.cells = st.S.map((_, i) => stats(cellPoly(st.S, st.W, i, 1)));
+    if (k === K) break;
+    const S = [], W = [];
+    st.axes = st.cells.map((s, i) => {
+      const flat = Math.abs(s.xx - s.yy) < 1e-6 && Math.abs(s.xy) < 1e-6;
+      const th = (flat ? 0 : 0.5 * Math.atan2(2 * s.xy, s.xx - s.yy)) + (r() - 0.5) * 0.2;
+      const ax = { x: Math.cos(th), y: Math.sin(th) };
+      const d = 0.3 * Math.sqrt(s.A / Math.PI);
+      S.push({ x: s.cx + ax.x * d, y: s.cy + ax.y * d }, { x: s.cx - ax.x * d, y: s.cy - ax.y * d });
+      W.push(st.W[i], st.W[i]);
+      return ax;
+    });
+    relax(S, W, 300);
+    stages.push({ S, W });
+  }
+  return stages;
+}
+
+const STAGES = buildStages(MAX_K);
+
+/* ============================================================
+   2. 난할 그리기 (k단계 → k+1단계, t = 0~1)
+   ============================================================ */
+const ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+const clamp01 = t => Math.max(0, Math.min(1, t));
+const lerp = (a, b, t) => a + (b - a) * t;
+
+function cleavageFrame(k, t) {
+  if (t <= 0 || k >= MAX_K) {
+    const st = STAGES[k];
+    return { S: st.S, W: st.W, parent: st.S.map((_, i) => i), sib: null, nucFrom: null, t: 1 };
+  }
+  const from = STAGES[k], to = STAGES[k + 1];
+  const e = ease(t);
+  const S = [], W = [], parent = [], nucFrom = [];
+  from.cells.forEach((c, i) => {
+    const ax = from.axes[i];
+    const d0 = 0.004;
+    [1, -1].forEach((sgn, b) => {
+      const ci = 2 * i + b;
+      const start = { x: c.cx + sgn * ax.x * d0, y: c.cy + sgn * ax.y * d0 };
+      S.push({ x: lerp(start.x, to.S[ci].x, e), y: lerp(start.y, to.S[ci].y, e) });
+      W.push(lerp(from.W[i], to.W[ci], e));
+      parent.push(i);
+      nucFrom.push({ x: c.cx, y: c.cy });
+    });
+  });
+  return { S, W, parent, sib: true, nucFrom, t };
+}
+
+function drawCleavage(svg, k, t, opts) {
+  const { S, W, parent, sib, nucFrom } = cleavageFrame(k, t);
+  const furrow = sib ? GAP * ease(clamp01(t / 0.6)) : GAP;
+  const off = (i, j) => (sib && parent[i] === parent[j] ? furrow : GAP) / 2 + ROUND / 2;
+  const rc = 1 - ROUND / 2 - 0.012;
+  const nucT = sib ? ease(clamp01(t / 0.45)) : 1;
+
+  let html = '';
+  if (opts.ring) {
+    html += `<circle r="1.075" fill="none" stroke="${opts.ringColor || '#62696F'}" stroke-width="0.012" stroke-dasharray="0.04 0.03" opacity="0.8"/>`;
+    if (opts.ringLabel) {
+      html += `<text x="0" y="-1.12" text-anchor="middle" font-size="0.075" font-weight="700" fill="#62696F" font-family="Pretendard">수정란 크기</text>`;
+    }
+  }
+  html += `<circle r="1" fill="${opts.bg}"/>`;
+  let cellsSvg = '', nucSvg = '';
+  for (let i = 0; i < S.length; i++) {
+    const p = cellPoly(S, W, i, rc, off);
+    if (!p) continue;
+    const s = stats(p);
+    const pick = opts.pick && i === 0;
+    const d = 'M' + p.map(q => q.x.toFixed(4) + ' ' + q.y.toFixed(4)).join('L') + 'Z';
+    const fill = pick ? opts.pickColor : opts.cellColor;
+    cellsSvg += `<path d="${d}" fill="${fill}" stroke="${fill}" stroke-width="${ROUND}" stroke-linejoin="round"/>`;
+    const nx = nucFrom ? lerp(nucFrom[i].x, s.cx, nucT) : s.cx;
+    const ny = nucFrom ? lerp(nucFrom[i].y, s.cy, nucT) : s.cy;
+    const nr = Math.max(0.03, 0.2 * Math.sqrt(s.A / Math.PI));
+    nucSvg += `<circle cx="${nx.toFixed(4)}" cy="${ny.toFixed(4)}" r="${nr.toFixed(4)}" fill="${pick ? opts.pickNucleus : opts.nucleus}" opacity="0.85"/>`;
+  }
+  html += `<g>${cellsSvg}</g><g>${nucSvg}</g>`;
+  svg.innerHTML = opts.wrap ? opts.wrap(html) : html;
+}
+
+const css = getComputedStyle(document.documentElement);
+const C = name => css.getPropertyValue(name).trim();
+const MAIN_STYLE = {
+  ring: true, ringLabel: true, pick: true,
+  bg: C('--embryo-bg'), cellColor: C('--cell'), nucleus: C('--cell-nucleus'),
+  pickColor: C('--cell-pick'), pickNucleus: C('--cell-pick-nucleus'),
+};
+
+/* ============================================================
+   3. 메인 화면 상태
+   ============================================================ */
+const svgMain = document.getElementById('embryo');
+const $ = id => document.getElementById(id);
+const DIV_MS = 1000;
+
+const TEXT = [
+  '<b>수정란</b> — 정자와 난자가 수정하여 만들어진 세포 1개예요. 정자와 난자는 염색체 수가 체세포의 절반이므로, 수정란은 체세포와 염색체 수가 같아요(사람 46개). <b>[난할 1회]</b>를 눌러 보세요.',
+  '<b>1회 분열</b> — 세포가 2개가 되었어요. 분열 후 생긴 딸세포가 커지지 않기 때문에 세포 1개의 크기는 수정란의 <b>1/2</b>이에요.',
+  '<b>2회 분열</b> — 세포가 4개가 되었어요. 세포 수는 늘었지만, 점선으로 표시한 <b>배 전체의 크기</b>는 수정란과 거의 같아요.',
+  '<b>3회 분열</b> — 세포가 8개, 세포 1개의 크기는 수정란의 <b>1/8</b>이에요. 딸세포가 자랄 틈 없이 분열을 <b>빠르게 반복</b>해요.',
+  '<b>4회 분열</b> — 세포가 16개가 되었어요. 색칠한 세포 1개를 보세요. 분열할수록 <b>점점 작아지고</b> 있어요.',
+  '<b>5회 분열</b> — 세포가 32개가 되었어요. 난할이 진행될수록 <b>세포 수는 늘어나고 세포 각각의 크기는 점점 작아지지만</b>, 배 전체의 크기는 수정란과 거의 차이가 없어요.<br>이후에는 분열 속도가 느려지면서 <b>일반적인 체세포 분열</b>이 일어나고, 조직과 기관이 만들어져 개체가 돼요.',
+];
+
+let k = 0;            // 현재 단계 (0 = 수정란)
+let anim = null;      // { from, dir, start }
+let autoPlay = false;
+
+const pillsEl = $('pills');
+for (let i = 0; i <= MAX_K; i++) {
+  const b = document.createElement('span');
+  b.className = 'pill';
+  b.textContent = i === 0 ? '수정란' : `${2 ** i}세포`;
+  b.addEventListener('click', () => { stopAuto(); anim = null; k = i; renderAll(); });
+  pillsEl.appendChild(b);
+}
+
+// 단계가 바뀔 때마다 값을 다시 가린다 (숫자 가리기를 켰을 때만 보임)
+function setVal(id, text) {
+  const el = $(id);
+  el.textContent = text;
+  el.classList.add('hidden');
+}
+
+function renderReadout() {
+  setVal('vDiv', String(k));
+  setVal('vCount', String(2 ** k));
+  setVal('vSize', k === 0 ? '1' : `1/${2 ** k}`);
+  setVal('vWhole', '1');
+  setVal('vChrom', '46');
+  $('barSize').style.width = (100 / 2 ** k) + '%';
+  $('barSize').classList.add('hidden');
+  $('barWhole').classList.add('hidden');
+  $('explain').innerHTML = TEXT[k];
+  [...pillsEl.children].forEach((p, i) => p.classList.toggle('active', i === k));
+  $('btnBack').disabled = k === 0;
+  $('btnNext').disabled = k === MAX_K;
+
+  const active = k === 0 ? 'zygote' : 'cleave';
+  document.querySelectorAll('#flow .node').forEach(n => {
+    n.classList.toggle('active', n.dataset.node === active);
+    n.classList.toggle('next', k === MAX_K && n.dataset.node === 'soma');
+  });
+}
+
+function renderAll() {
+  drawCleavage(svgMain, k, 0, MAIN_STYLE);
+  renderReadout();
+}
+
+function divide(dir) {
+  if (anim) return;
+  if (dir > 0 && k >= MAX_K) return;
+  if (dir < 0 && k <= 0) return;
+  anim = { from: dir > 0 ? k : k - 1, dir, start: performance.now() };
+  requestAnimationFrame(tickMain);
+}
+
+function tickMain(now) {
+  if (!anim) return;
+  const p = clamp01((now - anim.start) / DIV_MS);
+  const t = anim.dir > 0 ? p : 1 - p;
+  if (p < 1) {
+    drawCleavage(svgMain, anim.from, t, MAIN_STYLE);
+    requestAnimationFrame(tickMain);
+    return;
+  }
+  k = anim.dir > 0 ? anim.from + 1 : anim.from;
+  anim = null;
+  renderAll();
+  if (autoPlay) {
+    if (k < MAX_K) setTimeout(() => autoPlay && divide(1), 450);
+    else stopAuto();
+  }
+}
+
+function stopAuto() {
+  autoPlay = false;
+  $('btnAuto').textContent = '자동 재생';
+}
+
+$('btnNext').addEventListener('click', () => { stopAuto(); divide(1); });
+$('btnBack').addEventListener('click', () => { stopAuto(); divide(-1); });
+$('btnReset').addEventListener('click', () => { stopAuto(); anim = null; k = 0; renderAll(); });
+$('btnAuto').addEventListener('click', () => {
+  if (autoPlay) { stopAuto(); return; }
+  autoPlay = true;
+  $('btnAuto').textContent = '■ 멈춤';
+  if (k >= MAX_K && !anim) { k = 0; renderAll(); setTimeout(() => autoPlay && divide(1), 500); }
+  else divide(1);
+});
+
+// 숫자 가리기: 가린 값은 눌러서 하나씩 확인
+$('maskToggle').addEventListener('change', e => {
+  $('readout').classList.toggle('masked', e.target.checked);
+});
+$('readout').addEventListener('click', e => {
+  const v = e.target.closest('.val.hidden');
+  if (!v) return;
+  v.classList.remove('hidden');
+  if (v.id === 'vSize') $('barSize').classList.remove('hidden');
+  if (v.id === 'vWhole') $('barWhole').classList.remove('hidden');
+});
+
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input, textarea')) return;
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stopAuto(); divide(1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); stopAuto(); divide(-1); }
+});
+
+renderAll();
+
+/* ============================================================
+   4. 비교: 난할 vs 일반적인 체세포 분열
+   ============================================================ */
+const cmpCleaveSvg = $('cmpCleave');
+const cmpSomaSvg = $('cmpSoma');
+const CMP_CLEAVE_STYLE = {
+  ring: true, ringLabel: false, pick: false, ringColor: '#62696F',
+  bg: C('--embryo-bg'), cellColor: C('--cell'), nucleus: C('--cell-nucleus'),
+};
+const T_CLEAVE = 900;                 // 난할 1회
+const T_GROW = 1900, T_SPLIT = 800;   // 체세포 분열 1회 = 커지기 + 나뉘기 (= 난할 3회 시간)
+
+const R0 = 1;                         // 처음 세포 반지름 (두 화면 공통)
+const cmp = {
+  a: { k: 0, t: 0, busy: false },
+  b: { cells: [{ x: 0, y: 0, r: R0 }], n: 0, busy: false, phase: '' },
+  running: false,
+};
+
+function ringSvg() {
+  return `<circle r="${R0 + 0.075}" fill="none" stroke="#62696F" stroke-width="0.03" stroke-dasharray="0.1 0.08" opacity="0.7"/>`;
+}
+
+function drawCmpCleave() {
+  drawCleavage(cmpCleaveSvg, cmp.a.k, cmp.a.t, CMP_CLEAVE_STYLE);
+}
+
+function drawSoma() {
+  let html = ringSvg();
+  for (const c of cmp.b.cells) {
+    html += `<circle cx="${c.x.toFixed(3)}" cy="${c.y.toFixed(3)}" r="${c.r.toFixed(3)}" fill="${C('--soma')}" stroke="${C('--soma-edge')}" stroke-width="0.035"/>`;
+  }
+  for (const c of cmp.b.cells) {
+    html += `<circle cx="${c.x.toFixed(3)}" cy="${c.y.toFixed(3)}" r="${(c.r * 0.22).toFixed(3)}" fill="${C('--soma-nucleus')}" opacity="0.75"/>`;
+  }
+  cmpSomaSvg.innerHTML = html;
+}
+
+// 세포끼리 겹치지 않게 밀어내고, 무리 전체를 가운데로 모은다
+function settleSoma(steps, maxMove) {
+  const cs = cmp.b.cells;
+  for (let s = 0; s < steps; s++) {
+    for (let i = 0; i < cs.length; i++) {
+      for (let j = i + 1; j < cs.length; j++) {
+        const a = cs[i], b = cs[j];
+        let dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+        const want = a.r + b.r + 0.04;
+        if (d >= want) continue;
+        if (d < 1e-6) { dx = 1; dy = 0; d = 1; }
+        const push = Math.min((want - d) * 0.5, maxMove);
+        a.x -= dx / d * push; a.y -= dy / d * push;
+        b.x += dx / d * push; b.y += dy / d * push;
+      }
+    }
+    for (const c of cs) { c.x *= 0.995; c.y *= 0.995; }
+    const mx = cs.reduce((v, c) => v + c.x, 0) / cs.length;
+    const my = cs.reduce((v, c) => v + c.y, 0) / cs.length;
+    for (const c of cs) { c.x -= mx; c.y -= my; }
+  }
+}
+
+function fmtFrac(n) { return n === 1 ? '1' : `1/${n}`; }
+
+function renderCmpRead() {
+  const ka = cmp.a.k, nb = cmp.b.n;
+  $('cDivA').textContent = ka + '회';
+  $('cCountA').textContent = 2 ** ka + '개';
+  $('cSizeA').textContent = fmtFrac(2 ** ka);
+  $('cWholeA').textContent = '1';
+  $('cDivB').textContent = nb + '회';
+  $('cCountB').textContent = 2 ** nb + '개';
+  $('cSizeB').textContent = '1';
+  $('cWholeB').textContent = String(2 ** nb);
+  const maxed = ka >= CMP_MAX_K && nb >= CMP_MAX_K;
+  $('cmpStep').disabled = maxed || cmp.running;
+  $('cmpTime').disabled = cmp.running;
+  $('cmpReset').disabled = cmp.running;
+  if (!cmp.a.busy) $('stCleave').textContent = ka === 0 ? '세포 1개' : `난할 ${ka}회 · 세포 ${2 ** ka}개`;
+  if (!cmp.b.busy) $('stSoma').textContent = nb === 0 ? '세포 1개' : `체세포 분열 ${nb}회 · 세포 ${2 ** nb}개`;
+}
+
+// 애니메이션 도우미: 시간 ms 동안 f(p) 를 부른다
+function runFor(ms, f) {
+  return new Promise(res => {
+    const t0 = performance.now();
+    function step(now) {
+      const p = clamp01((now - t0) / ms);
+      f(p);
+      if (p < 1) requestAnimationFrame(step); else res();
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+async function cleaveOnce() {
+  const a = cmp.a;
+  if (a.k >= CMP_MAX_K) return;
+  a.busy = true;
+  $('stCleave').textContent = '분열 중 — 딸세포가 커지지 않아요';
+  await runFor(T_CLEAVE * 0.85, p => { a.t = p; drawCmpCleave(); });
+  a.k += 1; a.t = 0; drawCmpCleave();
+  await runFor(T_CLEAVE * 0.15, () => {});
+  a.busy = false;
+  renderCmpRead();
+}
+
+async function somaOnce() {
+  const b = cmp.b;
+  if (b.n >= CMP_MAX_K) return;
+  b.busy = true;
+  const grown = R0 * Math.SQRT2;   // 넓이 2배
+  $('stSoma').textContent = '분열 전 — 세포가 커져요';
+  await runFor(T_GROW, p => {
+    const r = lerp(R0, grown, ease(p));
+    b.cells.forEach(c => { c.r = r; });
+    settleSoma(6, 0.05);
+    drawSoma();
+  });
+  settleSoma(300, 0.05);
+  $('stSoma').textContent = '분열 — 원래 크기의 세포 2개가 돼요';
+  const next = [];
+  b.cells.forEach((c, i) => {
+    const th = (b.n % 2 ? Math.PI / 2 : 0) + i * 0.9;
+    const ax = { x: Math.cos(th), y: Math.sin(th) };
+    next.push({ x: c.x + ax.x * 0.05, y: c.y + ax.y * 0.05, r: R0 }, { x: c.x - ax.x * 0.05, y: c.y - ax.y * 0.05, r: R0 });
+  });
+  b.cells = next;
+  await runFor(T_SPLIT, () => { settleSoma(6, 0.012); drawSoma(); });
+  settleSoma(400, 0.05);   // 프레임이 적게 그려졌어도 겹침 없이 마무리
+  drawSoma();
+  b.n += 1;
+  b.busy = false;
+  renderCmpRead();
+}
+
+function resetCmp() {
+  if (cmp.running) return;
+  cmp.a = { k: 0, t: 0, busy: false };
+  cmp.b = { cells: [{ x: 0, y: 0, r: R0 }], n: 0, busy: false };
+  drawCmpCleave(); drawSoma(); renderCmpRead();
+}
+
+$('cmpStep').addEventListener('click', async () => {
+  if (cmp.running) return;
+  cmp.running = true;
+  const jobs = [cleaveOnce(), somaOnce()];
+  renderCmpRead();
+  await Promise.all(jobs);
+  cmp.running = false;
+  renderCmpRead();
+});
+
+$('cmpTime').addEventListener('click', async () => {
+  if (cmp.running) return;
+  resetCmp();
+  cmp.running = true;
+  const cleaveRun = (async () => { for (let i = 0; i < CMP_MAX_K; i++) await cleaveOnce(); })();
+  const somaRun = somaOnce();
+  renderCmpRead();
+  await Promise.all([cleaveRun, somaRun]);
+  cmp.running = false;
+  renderCmpRead();
+  $('stCleave').textContent = `같은 시간 동안 난할 ${cmp.a.k}회 · 세포 ${2 ** cmp.a.k}개`;
+  $('stSoma').textContent = `같은 시간 동안 체세포 분열 ${cmp.b.n}회 · 세포 ${2 ** cmp.b.n}개`;
+});
+
+$('cmpReset').addEventListener('click', resetCmp);
+
+$('compareToggle').addEventListener('click', () => {
+  const open = $('compare').classList.toggle('open');
+  $('compareToggle').setAttribute('aria-expanded', open);
+});
+
+resetCmp();
+</script>
+</body>
+</html>
