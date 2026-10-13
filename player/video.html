@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>영상</title>
+<!--
+  수업 슬라이드(HTML)의 '영상 장'이 불러오는 유튜브 플레이어. 배포 페이지에는 링크하지 않는다.
+  슬라이드 파일은 컴퓨터에서 바로 열기(file://)라 유튜브가 플레이어를 막으므로(오류 153),
+  웹 주소인 이 페이지가 대신 플레이어를 띄운다.  사용: video.html?v=<유튜브 영상 ID>&t=<시작 초>
+-->
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }
+  p { color: #ccc; font: 500 20px sans-serif; text-align: center; margin-top: 40vh; }
+</style>
+</head>
+<body>
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var v = q.get('v') || '';
+    var t = parseInt(q.get('t') || '0', 10) || 0;
+    if (!/^[A-Za-z0-9_-]{6,20}$/.test(v)) {
+      document.body.innerHTML = '<p>영상 주소가 없어요.</p>';
+      return;
+    }
+    var f = document.createElement('iframe');
+    f.src = 'https://www.youtube-nocookie.com/embed/' + v + '?rel=0&playsinline=1' + (t ? '&start=' + t : '');
+    f.title = '영상';
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    f.allowFullscreen = true;
+    f.referrerPolicy = 'strict-origin-when-cross-origin';
+    document.body.appendChild(f);
+  })();
+</script>
+</body>
+</html>
