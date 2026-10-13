@@ -4,24 +4,24 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>난할 시뮬레이션 — 수정란이 개체가 되는 과정</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
 <style>
 /* ============================================================
    공용 템플릿 (SHARED TEMPLATE) — cell-division.html / mitosis.html 기준
    ============================================================ */
 :root {
-  --bg: #EFECE4;
-  --paper: #FBFAF6;
-  --ink: #21262B;
-  --ink-soft: #62696F;
-  --line: #D9D3C4;
-  --core: #F4EEDD;
-  --accent: #2F8F94;
-  --accent-dark: #1F6669;
+  --bg: #EEF1F7;
+  --paper: #FFFFFF;
+  --ink: #1B1D22;
+  --ink-soft: #5B6170;
+  --line: #C9CFDB;
+  --core: #E8EEFB;
+  --accent: #1E3A8A;
+  --accent-dark: #1E3A8A;
   --accent-soft: #DCEFEF;
-  --warn: #B5523B;
-  --gold: #C2932B;
-  --mono: 'JetBrains Mono', 'Pretendard', monospace;
+  --warn: #B23A26;
+  --gold: #E8553E;
+  --mono: 'Pretendard', monospace;
 
   /* 세포 모형 컬러 */
   --cell: #F2DCB5;
@@ -31,7 +31,7 @@
   --embryo-bg: #DCCDAE;
   --soma: #CDD6DC;
   --soma-edge: #8E9AA3;
-  --soma-nucleus: #62696F;
+  --soma-nucleus: #5B6170;
 }
 
 * { box-sizing: border-box; }
@@ -292,6 +292,16 @@ footer { margin-top: 30px; font-size: 11.5px; color: var(--ink-soft); text-align
   .compare-grid { grid-template-columns: 1fr; }
   h1 { font-size: 22px; }
 }
+
+/* 학원 교재 테마 (2026-10-13) — 학습지·슬라이드와 같은 색·배지·글꼴 */
+body { font-family: 'Pretendard', -apple-system, sans-serif; }
+.eyebrow { font-family: 'Pretendard', sans-serif; font-weight: 900; color: #B23A26; letter-spacing: .14em; }
+.eyebrow-badge { background: #FDECE8; color: #B23A26; border: 0; font-weight: 800; letter-spacing: 0; }
+h1 { font-weight: 900; letter-spacing: -0.02em; }
+header { border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.panel, .card { border-color: var(--line); }
+.step-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.step-btn.active * { color: #fff; }
 </style>
 </head>
 <body>
@@ -605,9 +615,9 @@ function drawCleavage(svg, k, t, opts) {
 
   let html = '';
   if (opts.ring) {
-    html += `<circle r="1.075" fill="none" stroke="${opts.ringColor || '#62696F'}" stroke-width="0.012" stroke-dasharray="0.04 0.03" opacity="0.8"/>`;
+    html += `<circle r="1.075" fill="none" stroke="${opts.ringColor || '#5B6170'}" stroke-width="0.012" stroke-dasharray="0.04 0.03" opacity="0.8"/>`;
     if (opts.ringLabel) {
-      html += `<text x="0" y="-1.12" text-anchor="middle" font-size="0.075" font-weight="700" fill="#62696F" font-family="Pretendard">수정란 크기</text>`;
+      html += `<text x="0" y="-1.12" text-anchor="middle" font-size="0.075" font-weight="700" fill="#5B6170" font-family="Pretendard">수정란 크기</text>`;
     }
   }
   html += `<circle r="1" fill="${opts.bg}"/>`;
@@ -767,7 +777,7 @@ renderAll();
 const cmpCleaveSvg = $('cmpCleave');
 const cmpSomaSvg = $('cmpSoma');
 const CMP_CLEAVE_STYLE = {
-  ring: true, ringLabel: false, pick: false, ringColor: '#62696F',
+  ring: true, ringLabel: false, pick: false, ringColor: '#5B6170',
   bg: C('--embryo-bg'), cellColor: C('--cell'), nucleus: C('--cell-nucleus'),
 };
 const T_CLEAVE = 900;                 // 난할 1회
@@ -781,7 +791,7 @@ const cmp = {
 };
 
 function ringSvg() {
-  return `<circle r="${R0 + 0.075}" fill="none" stroke="#62696F" stroke-width="0.03" stroke-dasharray="0.1 0.08" opacity="0.7"/>`;
+  return `<circle r="${R0 + 0.075}" fill="none" stroke="#5B6170" stroke-width="0.03" stroke-dasharray="0.1 0.08" opacity="0.7"/>`;
 }
 
 function drawCmpCleave() {

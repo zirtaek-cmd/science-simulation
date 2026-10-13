@@ -4,23 +4,23 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>생식세포 분열(감수 분열) 3D 시뮬레이션 — 교과서 모형 연계</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
 <style>
 /* ============================================================
    공용 템플릿 (SHARED TEMPLATE) — cell_size_simulation.html 기준
    ============================================================ */
 :root {
-  --bg: #EFECE4;
-  --paper: #FBFAF6;
-  --ink: #21262B;
-  --ink-soft: #62696F;
-  --line: #D9D3C4;
-  --core: #F4EEDD;
-  --accent: #2F8F94;
-  --accent-dark: #1F6669;
-  --warn: #B5523B;
-  --gold: #C2932B;
-  --mono: 'JetBrains Mono', 'Pretendard', monospace;
+  --bg: #EEF1F7;
+  --paper: #FFFFFF;
+  --ink: #1B1D22;
+  --ink-soft: #5B6170;
+  --line: #C9CFDB;
+  --core: #E8EEFB;
+  --accent: #1E3A8A;
+  --accent-dark: #1E3A8A;
+  --warn: #B23A26;
+  --gold: #E8553E;
+  --mono: 'Pretendard', monospace;
 
   /* 감수분열 1/2차 테마 컬러 */
   --m1-color: #2F8F94;
@@ -164,7 +164,7 @@ h1 {
 }
 .step-btn:hover {
   border-color: var(--accent);
-  background: #F4F1EA;
+  background: #E8EEFB;
 }
 .step-btn.active {
   background: var(--ink);
@@ -608,6 +608,16 @@ footer {
   text-align: center;
   font-family: var(--mono);
 }
+
+/* 학원 교재 테마 (2026-10-13) — 학습지·슬라이드와 같은 색·배지·글꼴 */
+body { font-family: 'Pretendard', -apple-system, sans-serif; }
+.eyebrow { font-family: 'Pretendard', sans-serif; font-weight: 900; color: #B23A26; letter-spacing: .14em; }
+.eyebrow-badge { background: #FDECE8; color: #B23A26; border: 0; font-weight: 800; letter-spacing: 0; }
+h1 { font-weight: 900; letter-spacing: -0.02em; }
+header { border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.panel, .card { border-color: var(--line); }
+.step-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.step-btn.active * { color: #fff; }
 </style>
 </head>
 <body>
@@ -1070,7 +1080,7 @@ const canvasWrap = document.getElementById('canvas-wrap');
 const loadingEl = document.getElementById('loading');
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xFBFAF6); // 공통 템플릿 --paper 컬러
+scene.background = new THREE.Color(0xFFFFFF); // 공통 템플릿 --paper 컬러
 
 const camera = new THREE.PerspectiveCamera(
   38,

@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>멘델이 밝힌 유전 원리 (1) — 완두의 형질과 순종 교배</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+/* ============================================================
+   공용 템플릿 (SHARED TEMPLATE) — meiosis.html / cell_size 시리즈 연계
+   ============================================================ */
+:root {
+  --bg: #EEF1F7;
+  --paper: #FFFFFF;
+  --ink: #1B1D22;
+  --ink-soft: #5B6170;
+  --line: #C9CFDB;
+  --core: #E8EEFB;
+  --accent: #1E3A8A;
+  --accent-dark: #1E3A8A;
+  --warn: #B23A26;
+  --gold: #E8553E;
+  --mono: 'Pretendard', monospace;
+
+  /* 완두 형질 전용 컬러 */
+  --pea-yellow: #F4C430;
+  --pea-yellow-dark: #C29315;
+  --pea-yellow-light: #FDE88A;
+  --pea-green: #589E34;
+  --pea-green-dark: #3E7322;
+  --pea-green-light: #90D36B;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  padding: 24px 16px 60px;
+  line-height: 1.5;
+}
+
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+header { margin-bottom: 20px; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent-dark);
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.eyebrow-badge {
+  background: var(--core);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  font-size: 11px;
+}
+h1 {
+  font-size: 26px;
+  margin: 0 0 8px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.lead {
+  color: var(--ink-soft);
+  font-size: 14.5px;
+  max-width: 920px;
+  margin: 0;
+}
+
+.panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  position: relative;
+}
+
+/* ============================================================
+   상단 메인 탭 (활동 ① 순종 만들기 / 활동 ② 교배 실험실)
+   ============================================================ */
+.main-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.main-tab-btn {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 2px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all .2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+.main-tab-btn:hover {
+  background: var(--core);
+  color: var(--ink);
+  border-color: var(--accent);
+}
+.main-tab-btn.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  box-shadow: 0 4px 12px rgba(33, 38, 43, 0.12);
+}
+.tab-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tab-num-badge {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.06);
+  color: var(--ink);
+}
+.main-tab-btn.active .tab-num-badge {
+  background: var(--gold);
+  color: var(--ink);
+}
+.tab-tag {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+/* 공통 버튼 스타일 (태블릿/TV 큰 터치 타겟) */
+button {
+  font-family: 'Pretendard', sans-serif;
+  font-weight: 700;
+  font-size: 13.5px;
+  border-radius: 9px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: all .15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  user-select: none;
+}
+button:hover:not(:disabled) {
+  opacity: .9;
+  transform: translateY(-1px);
+}
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+  transform: none;
+}
+button.secondary {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--line);
+}
+button.secondary:hover:not(:disabled) {
+  background: var(--core);
+  border-color: var(--ink-soft);
+}
+button.accent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+button.accent:hover:not(:disabled) {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
+}
+button.large {
+  font-size: 15px;
+  padding: 12px 22px;
+  border-radius: 11px;
+}
+
+/* ============================================================
+   탭 ①: 순종 만들기 (자가 수분 반복) 레이아웃
+   ============================================================ */
+.pure-layout {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 980px) {
+  .pure-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.garden-stage {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stage-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+}
+.gen-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gen-badge {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: var(--core);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+.stage-instruction {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 0;
+}
+.stage-instruction b {
+  color: var(--ink);
+}
+
+/* 화단 / 완두밭 시각화 (20그루) */
+.garden-field {
+  background: #E8E2D5;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 400px;
+  position: relative;
+  overflow: hidden;
+}
+.plants-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+@media (max-width: 600px) {
+  .plants-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+}
+
+.plant-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 125px;
+  transition: all .25s ease;
+  position: relative;
+}
+.plant-id {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-soft);
+  align-self: flex-start;
+  line-height: 1;
+}
+
+/* 완두씨 그래픽 */
+.pea-seed {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: inset -2px -3px 5px rgba(0,0,0,0.22), 0 2px 5px rgba(0,0,0,0.12);
+  position: relative;
+  transition: transform .2s ease;
+}
+.pea-seed.yellow {
+  background: radial-gradient(circle at 35% 35%, var(--pea-yellow-light), var(--pea-yellow) 60%, var(--pea-yellow-dark));
+}
+.pea-seed.green {
+  background: radial-gradient(circle at 35% 35%, var(--pea-green-light), var(--pea-green) 60%, var(--pea-green-dark));
+}
+.pea-seed.small {
+  width: 14px;
+  height: 14px;
+  box-shadow: inset -1px -2px 3px rgba(0,0,0,0.25);
+}
+
+/* 식물 자람 & 꽃 그래픽 */
+.plant-graphic-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+}
+.plant-svg {
+  width: 54px;
+  height: 74px;
+  overflow: visible;
+}
+
+/* 꼬투리와 씨앗 표시 */
+.pod-graphic-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 4px 0;
+}
+.pod-box {
+  background: #EAF3E2;
+  border: 1px solid #C4DEC0;
+  border-radius: 12px;
+  padding: 4px 6px;
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 94px;
+}
+.pod-count-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-align: center;
+}
+.pod-count-label .green-warn {
+  color: var(--warn);
+}
+
+/* 자가 수분 애니메이션 힌트 오버레이 */
+.pollination-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(244, 196, 48, 0.28) 0%, transparent 75%);
+  animation: pulse-glow 1.2s infinite alternate;
+  pointer-events: none;
+  border-radius: 12px;
+}
+@keyframes pulse-glow {
+  from { opacity: 0.3; }
+  to { opacity: 0.9; }
+}
+
+/* 단계 조작 바 */
+.stage-control-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+/* 수확 통계 바 */
+.harvest-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  background: var(--core);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+@media (max-width: 500px) {
+  .harvest-stats {
+    grid-template-columns: 1fr;
+  }
+}
+.harvest-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stat-title {
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+.stat-val {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.stat-val.yellow { color: var(--pea-yellow-dark); }
+.stat-val.green { color: var(--pea-green-dark); }
+
+/* 세대별 누적 그래프 패널 */
+.pure-chart-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.chart-box {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+}
+.chart-box h3 {
+  font-size: 15px;
+  font-weight: 800;
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.chart-desc {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+}
+.chart-canvas-wrap {
+  width: 100%;
+  height: 200px;
+  position: relative;
+}
+
+/* 순종 달성 축하 배너 */
+.success-banner {
+  background: linear-gradient(135deg, #FFF9E6 0%, #F5E8BE 100%);
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 16px;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba(194, 147, 43, 0.15);
+}
+.success-banner.active {
+  display: flex;
+}
+.success-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #7D5B08;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.success-body {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* 교과서 유도 질문 1 박스 */
+.think-box {
+  background: var(--core);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.think-box h4 {
+  font-size: 13.5px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+}
+.think-box p {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ============================================================
+   탭 ②: 교배 실험실 레이아웃
+   ============================================================ */
+.cross-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 교배 단계 안내 네비게이터 */
+.step-stepper {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+@media (max-width: 650px) {
+  .step-stepper {
+    grid-template-columns: 1fr;
+  }
+}
+.stepper-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  font-weight: 700;
+  transition: all .2s;
+}
+.stepper-item.active {
+  background: var(--ink);
+  color: var(--paper);
+}
+.stepper-item.done {
+  background: rgba(47, 143, 148, 0.12);
+  color: var(--accent-dark);
+}
+.stepper-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.08);
+}
+.stepper-item.active .stepper-badge {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+/* 실험실 메인 뷰어 무대 */
+.lab-stage {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+
+/* 상단 상태 가이드 바 */
+.lab-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+}
+.lab-guide-text {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lab-tool-status {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: var(--core);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* 꽃 2개 비교 뷰어 */
+.flowers-dual-stage {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 18px;
+  align-items: center;
+  min-height: 420px;
+  position: relative;
+}
+@media (max-width: 860px) {
+  .flowers-dual-stage {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.flower-card {
+  background: #F9F7F1;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transition: all .2s ease;
+}
+.flower-card.target-pollination {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(47, 143, 148, 0.25);
+  background: #F0F8F8;
+}
+.flower-card.donor-pollen {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(194, 147, 43, 0.25);
+}
+
+.flower-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.flower-title {
+  font-size: 15px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+.flower-status-tag {
+  font-size: 11.5px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: var(--core);
+  font-weight: 700;
+  border: 1px solid var(--line);
+}
+
+/* 꽃 SVG 인터랙티브 영역 */
+.flower-svg-box {
+  width: 100%;
+  max-width: 320px;
+  height: 250px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flower-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* 꽃 내부 요소 인터랙션 & 호버 */
+.stamen-clickable {
+  cursor: pointer;
+  transition: filter .15s ease;
+}
+.stamen-clickable:hover {
+  filter: drop-shadow(0 0 8px rgba(194, 147, 43, 0.9));
+}
+.stigma-clickable {
+  cursor: pointer;
+  transition: filter .15s ease;
+}
+.stigma-clickable:hover {
+  filter: drop-shadow(0 0 8px rgba(47, 143, 148, 0.9));
+}
+
+/* 중앙 전이 / 도구 선택 영역 */
+.lab-middle-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px;
+  min-width: 140px;
+}
+
+/* 도구 선택 버튼들 */
+.tool-selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.tool-btn {
+  background: var(--paper);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all .2s;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  justify-content: center;
+  width: 100%;
+}
+.tool-btn:hover {
+  border-color: var(--accent);
+  background: var(--core);
+}
+.tool-btn.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.tool-btn.has-pollen {
+  background: #FFF9E6;
+  border-color: var(--gold);
+  color: #7D5B08;
+  box-shadow: 0 0 12px rgba(194, 147, 43, 0.3);
+}
+
+/* 꽃 조작 버튼 */
+.flower-action-btns {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  width: 100%;
+}
+.flower-action-btns button {
+  flex: 1;
+  font-size: 12.5px;
+  padding: 8px 12px;
+}
+
+/* 교배 결과 확인 무대 (꼬투리 & 자손 1대 씨앗) */
+.f1-result-stage {
+  background: #E8EEFB;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.f1-result-stage.active {
+  display: flex;
+}
+.f1-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.f1-pod-display {
+  background: var(--paper);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+.f1-seeds-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* 수술 미제거 시 경고 / 유도 질문 2 카드 */
+.branch-warning-box {
+  background: #FDF3F0;
+  border: 2px solid var(--warn);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+.branch-warning-box.active {
+  display: flex;
+}
+.branch-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--warn);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.branch-desc {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* 정상 교배 성공 안내 카드 */
+.normal-success-box {
+  background: #F0F8F8;
+  border: 2px solid var(--accent);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+.normal-success-box.active {
+  display: flex;
+}
+
+/* 교과서 개념 정리 박스 (접이식) */
+.summary-accordion {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  overflow: hidden;
+  margin-top: 10px;
+}
+.summary-toggle-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--core);
+  border: none;
+  border-radius: 0;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: left;
+}
+.summary-toggle-btn:hover {
+  background: #EAE3D0;
+}
+.summary-content {
+  padding: 22px;
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+}
+.summary-content.open {
+  display: flex;
+}
+
+.concept-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 700px) {
+  .concept-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.concept-item {
+  background: var(--core);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+}
+.concept-item-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.concept-item-body {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 0;
+}
+.concept-item-body b {
+  color: var(--ink);
+}
+
+.caution-card {
+  background: #FFFDF7;
+  border: 1.5px solid var(--gold);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.caution-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #8C660B;
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.caution-body {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.6;
+  margin: 0;
+}
+
+footer {
+  margin-top: 40px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  text-align: center;
+  font-family: var(--mono);
+}
+
+/* 학원 교재 테마 (2026-10-13) — 학습지·슬라이드와 같은 색·배지·글꼴 */
+body { font-family: 'Pretendard', -apple-system, sans-serif; }
+.eyebrow { font-family: 'Pretendard', sans-serif; font-weight: 900; color: #B23A26; letter-spacing: .14em; }
+.eyebrow-badge { background: #FDECE8; color: #B23A26; border: 0; font-weight: 800; letter-spacing: 0; }
+h1 { font-weight: 900; letter-spacing: -0.02em; }
+header { border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.panel, .card { border-color: var(--line); }
+.step-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.step-btn.active * { color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">
+      <span>Science 3 · Chapter 5. Reproduction & Genetics</span>
+      <span class="eyebrow-badge">중3 과학 교과서 모형 연계</span>
+    </p>
+    <h1>멘델이 밝힌 유전 원리 (1) — 완두의 형질과 순종 교배</h1>
+    <p class="lead">
+      멘델은 대립 형질이 뚜렷한 완두를 교배하여 유전의 원리를 밝혔어요.
+      자가 수분을 거듭해 노란색 순종 완두를 얻는 과정과, 순종 노란색 완두와 순종 초록색 완두를 교배할 때 자손 1대에서 어떤 형질이 나타나는지 직접 실험해 봅시다.
+    </p>
+  </header>
+
+  <!-- 상단 대분류 탭 (활동 ① -> 활동 ②) -->
+  <nav class="main-tabs" role="tablist">
+    <button class="main-tab-btn active" id="main-tab-pure" onclick="switchTab('pure')">
+      <div class="tab-left">
+        <span class="tab-num-badge">활동 ①</span>
+        <div>
+          <div>순종 만들기 (자가 수분 반복)</div>
+          <span class="tab-tag">교과서 176쪽 탐구</span>
+        </div>
+      </div>
+      <span style="font-size:20px">🌱</span>
+    </button>
+    <button class="main-tab-btn" id="main-tab-cross" onclick="switchTab('cross')">
+      <div class="tab-left">
+        <span class="tab-num-badge">활동 ②</span>
+        <div>
+          <div>교배 실험실 (순종 교배)</div>
+          <span class="tab-tag">교과서 177쪽 해 보기</span>
+        </div>
+      </div>
+      <span style="font-size:20px">🌸</span>
+    </button>
+  </nav>
+
+  <!-- ========================================================
+       탭 ①: 순종 만들기 (자가 수분 반복)
+       ======================================================== -->
+  <section id="pane-pure">
+    <div class="pure-layout">
+      
+      <!-- 좌측: 화단 및 시뮬레이션 무대 -->
+      <div class="panel garden-stage">
+        <div class="stage-top-bar">
+          <div class="gen-badge-wrap">
+            <span class="gen-badge" id="pure-gen-label">제 1 세대</span>
+            <p class="stage-instruction" id="pure-stage-instruction">
+              노란색 완두씨 20개가 준비되었습니다. <b>[심기]</b> 버튼을 눌러보세요.
+            </p>
+          </div>
+          <button class="secondary" onclick="resetPureTab()">처음부터 다시 ↺</button>
+        </div>
+
+        <!-- 20개 식물 격자 밭 -->
+        <div class="garden-field" id="garden-field">
+          <div class="plants-grid" id="plants-grid">
+            <!-- 자바스크립트로 20개 완두 식물 렌더링 -->
+          </div>
+        </div>
+
+        <!-- 하단 컨트롤 & 수확 통계 -->
+        <div class="stage-control-bar">
+          <button class="large accent" id="btn-pure-plant" onclick="plantCurrentGeneration()">
+            🌱 1단계: 씨 20개 심기
+          </button>
+          <button class="large" id="btn-pure-harvest" onclick="harvestCurrentGeneration()" disabled>
+            🌾 2단계: 꼬투리 수확하기
+          </button>
+          <button class="large secondary" id="btn-pure-next" onclick="nextGeneration()" disabled>
+            🔄 3단계: 노란색만 골라 다시 심기
+          </button>
+        </div>
+
+        <!-- 수확 결과 수치 바 -->
+        <div class="harvest-stats" id="harvest-stats-box">
+          <div class="harvest-stat-item">
+            <span class="stat-title">수확된 전체 완두씨</span>
+            <span class="stat-val" id="stat-total-seeds">- 개</span>
+          </div>
+          <div class="harvest-stat-item">
+            <span class="stat-title">🟡 노란색 완두씨</span>
+            <span class="stat-val yellow" id="stat-yellow-seeds">- 개 (-)</span>
+          </div>
+          <div class="harvest-stat-item">
+            <span class="stat-title">🟢 초록색 완두씨</span>
+            <span class="stat-val green" id="stat-green-seeds">- 개 (-)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 우측: 세대별 그래프 및 교과서 유도 질문 -->
+      <div class="pure-chart-panel">
+        
+        <!-- 순종 달성 축하 배너 -->
+        <div class="success-banner" id="pure-success-banner">
+          <h3 class="success-title">🎉 노란색 순종 완두를 얻었다!</h3>
+          <p class="success-body">
+            이번 세대에는 20그루의 모든 꼬투리에서 <b>초록색 씨가 0개</b>(오직 노란색 씨만) 나왔습니다!
+            여러 세대 동안 자가 수분을 거듭하여 순종 완두를 성공적으로 얻었습니다.
+          </p>
+          <button class="large accent" onclick="switchTab('cross')" style="margin-top: 4px;">
+            이 씨로 교배하러 가기 ➡️
+          </button>
+        </div>
+
+        <!-- 세대별 초록색 씨 비율 막대그래프 -->
+        <div class="chart-box">
+          <h3>
+            <span>세대별 초록색 씨 비율 (%)</span>
+            <span style="font-family: var(--mono); font-size: 11px; font-weight: normal; color: var(--ink-soft);">목표: 0%</span>
+          </h3>
+          <p class="chart-desc">자가 수분을 거듭할수록 초록색 씨가 나오는 비율이 어떻게 변하는지 관찰해 보세요.</p>
+          <div class="chart-canvas-wrap">
+            <svg id="pure-chart-svg" width="100%" height="100%" viewBox="0 0 340 190" style="overflow: visible;"></svg>
+          </div>
+        </div>
+
+        <!-- 교과서 유도 질문 1 연계 박스 -->
+        <div class="think-box">
+          <h4>💡 생각해 보기 (교과서 176쪽)</h4>
+          <p>
+            겉보기에 똑같은 노란색 완두라도, 심어서 기른 자손에서 초록색 씨가 섞여 나올 수 있습니다.
+            그래서 멘델은 교배 전에 <b>자가 수분을 여러 세대 반복하여 순종을 먼저 얻었습니다.</b>
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================
+       탭 ②: 교배 실험실 (노란색 순종 × 초록색 순종)
+       ======================================================== -->
+  <section id="pane-cross" style="display: none;">
+    <div class="cross-layout">
+
+      <!-- 상단 단계 네비게이터 -->
+      <div class="step-stepper">
+        <div class="stepper-item active" id="step-nav-1">
+          <span class="stepper-badge">1단계</span>
+          <span>(1) 한쪽 꽃의 수술 제거하기</span>
+        </div>
+        <div class="stepper-item" id="step-nav-2">
+          <span class="stepper-badge">2단계</span>
+          <span>(2) 다른 꽃의 꽃가루 옮기기 (수분)</span>
+        </div>
+        <div class="stepper-item" id="step-nav-3">
+          <span class="stepper-badge">3단계</span>
+          <span>(3) 씨 맺기 & 자손 1대 확인</span>
+        </div>
+      </div>
+
+      <!-- 메인 실험 무대 -->
+      <div class="lab-stage">
+        
+        <div class="lab-header-bar">
+          <p class="lab-guide-text" id="lab-guide-msg">
+            ✂️ <b>1단계:</b> 수술을 제거할 완두꽃의 <b>[수술 제거하기]</b> 버튼을 누르거나 수술을 클릭하세요.
+          </p>
+          <div class="lab-tool-status" id="lab-tool-status">준비: 두 꽃 모두 온전함</div>
+        </div>
+
+        <!-- 두 꽃 비교 뷰어 -->
+        <div class="flowers-dual-stage">
+
+          <!-- 왼쪽: 노란색 순종 완두꽃 -->
+          <div class="flower-card" id="flower-card-yellow">
+            <div class="flower-header">
+              <h3 class="flower-title">
+                <span class="pea-seed yellow small" style="display:inline-block"></span>
+                <span>노란색 순종 완두의 꽃</span>
+              </h3>
+              <span class="flower-status-tag" id="tag-flower-yellow">수술 있음</span>
+            </div>
+
+            <div class="flower-svg-box">
+              <svg class="flower-svg" id="svg-flower-yellow" viewBox="0 0 240 200">
+                <!-- 꽃잎 구조 (완두꽃 특유의 단면) -->
+                <!-- 기판 (가장 큰 등꽃잎) -->
+                <path d="M 50,170 Q 110,190 175,160 Q 215,95 190,45 Q 135,15 80,40 Q 40,85 50,170 Z" fill="#FBF7EC" stroke="#D1C8B4" stroke-width="2.5" />
+                <!-- 익판 (날개꽃잎) -->
+                <path d="M 75,155 Q 120,170 165,140 Q 190,95 168,60 Q 125,40 90,65 Q 68,95 75,155 Z" fill="#FFFDF8" stroke="#E2DAC8" stroke-width="2" />
+                <!-- 꽃받침 & 꽃자루 -->
+                <path d="M 35,170 Q 55,185 75,185" stroke="#75A864" stroke-width="4.5" fill="none" stroke-linecap="round" />
+                <path d="M 25,180 Q 45,195 15,210" stroke="#5E8C4E" stroke-width="5" fill="none" stroke-linecap="round" />
+
+                <!-- 용골판 단면 안내선 -->
+                <path d="M 75,155 Q 110,150 145,130" stroke="#C9CFDB" stroke-dasharray="3,3" stroke-width="1.5" fill="none"/>
+
+                <!-- 암술 (씨방 + 암술대 + 암술머리) -->
+                <g class="stigma-clickable" id="stigma-yellow" onclick="handleStigmaClick('yellow')">
+                  <!-- 씨방 (밑부분) -->
+                  <ellipse cx="88" cy="150" rx="12" ry="7" fill="#6FB849" stroke="#3E7322" stroke-width="1.5" transform="rotate(-25 88 150)"/>
+                  <!-- 암술대 (줄기) -->
+                  <path d="M 95,145 Q 118,135 133,115 Q 140,102 138,88" fill="none" stroke="#589E34" stroke-width="5" stroke-linecap="round"/>
+                  <!-- 암술머리 (끝부분) -->
+                  <circle cx="138" cy="86" r="8" fill="#6FB849" stroke="#3E7322" stroke-width="2"/>
+                  <text x="150" y="86" font-size="11.5" font-weight="bold" fill="#3E7322" font-family="Pretendard">암술머리</text>
+                  <!-- 수분된 꽃가루 입자 (초기 숨김) -->
+                  <g id="pollen-grains-yellow" style="display:none;">
+                    <circle cx="135" cy="83" r="2.4" fill="#F4C430"/>
+                    <circle cx="140" cy="87" r="2.2" fill="#F4C430"/>
+                    <circle cx="139" cy="82" r="2.0" fill="#F4C430"/>
+                  </g>
+                </g>
+
+                <!-- 수술 그룹 (꽃밥 + 수술대) -->
+                <g class="stamen-clickable" id="stamens-group-yellow" onclick="handleStamenClick('yellow')">
+                  <!-- 투명 클릭 히트박스 확대 -->
+                  <rect x="105" y="90" width="70" height="55" fill="transparent" pointer-events="all"/>
+                  <!-- 수술대 여러 가닥 -->
+                  <path d="M 90,150 Q 106,138 120,110" stroke="#B8AA8B" stroke-width="2.5" fill="none"/>
+                  <path d="M 90,150 Q 114,134 128,118" stroke="#B8AA8B" stroke-width="2.5" fill="none"/>
+                  <path d="M 90,150 Q 120,136 136,126" stroke="#B8AA8B" stroke-width="2.5" fill="none"/>
+                  <!-- 꽃밥 (노란 꽃가루) -->
+                  <ellipse cx="120" cy="108" rx="5" ry="4" fill="#F4C430" stroke="#C29315" stroke-width="1.3"/>
+                  <ellipse cx="128" cy="116" rx="5" ry="4" fill="#F4C430" stroke="#C29315" stroke-width="1.3"/>
+                  <ellipse cx="136" cy="124" rx="5" ry="4" fill="#F4C430" stroke="#C29315" stroke-width="1.3"/>
+                  <text x="146" y="125" font-size="11.5" font-weight="bold" fill="#C29315" font-family="Pretendard">수술(꽃가루)</text>
+                </g>
+              </svg>
+            </div>
+
+            <div class="flower-action-btns">
+              <button class="secondary" id="btn-emasculate-yellow" onclick="handleEmasculate('yellow')">
+                ✂️ 수술 제거하기
+              </button>
+            </div>
+          </div>
+
+          <!-- 중앙: 도구 모드 및 전이 영역 -->
+          <div class="lab-middle-divider">
+            <div class="tool-selector-group">
+              <button class="tool-btn active" id="tool-btn-scissor" onclick="setLabTool('scissor')">
+                ✂️ 수술 제거 (가위)
+              </button>
+              <button class="tool-btn" id="tool-btn-brush" onclick="setLabTool('brush')">
+                <span id="brush-icon-indicator">🖌️</span>
+                <span id="brush-text-indicator">꽃가루 옮기기 (붓)</span>
+              </button>
+            </div>
+
+            <button class="large accent" id="btn-make-f1" onclick="harvestF1Pod()" disabled style="width: 100%; margin-top: 4px;">
+              🫛 씨 맺기 (확인)
+            </button>
+            <button class="secondary" onclick="resetCrossTab()" style="font-size:12px; padding: 6px 12px; width: 100%;">
+              다시 하기 ↺
+            </button>
+          </div>
+
+          <!-- 오른쪽: 초록색 순종 완두꽃 -->
+          <div class="flower-card" id="flower-card-green">
+            <div class="flower-header">
+              <h3 class="flower-title">
+                <span class="pea-seed green small" style="display:inline-block"></span>
+                <span>초록색 순종 완두의 꽃</span>
+              </h3>
+              <span class="flower-status-tag" id="tag-flower-green">수술 있음</span>
+            </div>
+
+            <div class="flower-svg-box">
+              <svg class="flower-svg" id="svg-flower-green" viewBox="0 0 240 200">
+                <!-- 꽃잎 구조 (완두꽃 특유의 단면) -->
+                <!-- 기판 (가장 큰 등꽃잎) -->
+                <path d="M 50,170 Q 110,190 175,160 Q 215,95 190,45 Q 135,15 80,40 Q 40,85 50,170 Z" fill="#FBF7EC" stroke="#D1C8B4" stroke-width="2.5" />
+                <!-- 익판 (날개꽃잎) -->
+                <path d="M 75,155 Q 120,170 165,140 Q 190,95 168,60 Q 125,40 90,65 Q 68,95 75,155 Z" fill="#FFFDF8" stroke="#E2DAC8" stroke-width="2" />
+                <!-- 꽃받침 & 꽃자루 -->
+                <path d="M 35,170 Q 55,185 75,185" stroke="#75A864" stroke-width="4.5" fill="none" stroke-linecap="round" />
+                <path d="M 25,180 Q 45,195 15,210" stroke="#5E8C4E" stroke-width="5" fill="none" stroke-linecap="round" />
+
+                <!-- 용골판 단면 안내선 -->
+                <path d="M 75,155 Q 110,150 145,130" stroke="#C9CFDB" stroke-dasharray="3,3" stroke-width="1.5" fill="none"/>
+
+                <!-- 암술 (씨방 + 암술대 + 암술머리) -->
+                <g class="stigma-clickable" id="stigma-green" onclick="handleStigmaClick('green')">
+                  <!-- 씨방 (밑부분) -->
+                  <ellipse cx="88" cy="150" rx="12" ry="7" fill="#6FB849" stroke="#3E7322" stroke-width="1.5" transform="rotate(-25 88 150)"/>
+                  <!-- 암술대 (줄기) -->
+                  <path d="M 95,145 Q 118,135 133,115 Q 140,102 138,88" fill="none" stroke="#589E34" stroke-width="5" stroke-linecap="round"/>
+                  <!-- 암술머리 (끝부분) -->
+                  <circle cx="138" cy="86" r="8" fill="#6FB849" stroke="#3E7322" stroke-width="2"/>
+                  <text x="150" y="86" font-size="11.5" font-weight="bold" fill="#3E7322" font-family="Pretendard">암술머리</text>
+                  <!-- 수분된 꽃가루 입자 (초기 숨김) -->
+                  <g id="pollen-grains-green" style="display:none;">
+                    <circle cx="135" cy="83" r="2.4" fill="#F4C430"/>
+                    <circle cx="140" cy="87" r="2.2" fill="#F4C430"/>
+                    <circle cx="139" cy="82" r="2.0" fill="#F4C430"/>
+                  </g>
+                </g>
+
+                <!-- 수술 그룹 (꽃밥 + 수술대) -->
+                <g class="stamen-clickable" id="stamens-group-green" onclick="handleStamenClick('green')">
+                  <!-- 투명 클릭 히트박스 확대 -->
+                  <rect x="105" y="90" width="70" height="55" fill="transparent" pointer-events="all"/>
+                  <!-- 수술대 여러 가닥 -->
+                  <path d="M 90,150 Q 106,138 120,110" stroke="#B8AA8B" stroke-width="2.5" fill="none"/>
+                  <path d="M 90,150 Q 114,134 128,118" stroke="#B8AA8B" stroke-width="2.5" fill="none"/>
+                  <path d="M 90,150 Q 120,136 136,126" stroke="#B8AA8B" stroke-width="2.5" fill="none"/>
+                  <!-- 꽃밥 (노란 꽃가루) -->
+                  <ellipse cx="120" cy="108" rx="5" ry="4" fill="#F4C430" stroke="#C29315" stroke-width="1.3"/>
+                  <ellipse cx="128" cy="116" rx="5" ry="4" fill="#F4C430" stroke="#C29315" stroke-width="1.3"/>
+                  <ellipse cx="136" cy="124" rx="5" ry="4" fill="#F4C430" stroke="#C29315" stroke-width="1.3"/>
+                  <text x="146" y="125" font-size="11.5" font-weight="bold" fill="#C29315" font-family="Pretendard">수술(꽃가루)</text>
+                </g>
+              </svg>
+            </div>
+
+            <div class="flower-action-btns">
+              <button class="secondary" id="btn-emasculate-green" onclick="handleEmasculate('green')">
+                ✂️ 수술 제거하기
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 자손 1대 교배 결과 디스플레이 -->
+        <div class="f1-result-stage" id="f1-result-stage">
+          <h3 class="f1-title" id="f1-result-title">🫛 교배 결과: 자손 1대 완두씨</h3>
+          <div class="f1-pod-display">
+            <span style="font-weight:700; font-size:14px; color:var(--ink-soft);">꼬투리 속 완두씨 (8개):</span>
+            <div class="f1-seeds-row" id="f1-seeds-row">
+              <!-- JS로 8개 씨앗 동적 생성 -->
+            </div>
+          </div>
+          <div id="f1-result-desc" style="font-size:15px; font-weight:700; text-align:center;"></div>
+        </div>
+
+        <!-- 분기 1: 수술을 미리 제거하지 않아 자가 수분된 경우 경고 카드 -->
+        <div class="branch-warning-box" id="branch-warning-box">
+          <h4 class="branch-title">❓ 수술을 제거하지 않았더니 어떤 일이 생겼을까?</h4>
+          <p class="branch-desc">
+            완두꽃은 꽃잎이 닫혀 있어서, 수술을 미리 제거하지 않으면 <b>자신의 꽃가루가 암술에 먼저 묻어 자가 수분이 일어납니다!</b><br>
+            그 결과 다른 꽃과 교배하여 맺힌 씨뿐만 아니라, <b>자가 수분으로 생긴 씨가 뒤섞여 나오게 됩니다.</b><br>
+            원하는 꽃가루로만 정확하게 교배(타가 수분)하기 위해서는, 꽃이 피기 전에 <b>암술로 쓸 꽃의 수술을 미리 제거</b>해야 합니다.
+          </p>
+          <div>
+            <button class="large accent" onclick="resetCrossTab()">수술 제거하고 다시 해 보기 ↺</button>
+          </div>
+        </div>
+
+        <!-- 분기 2: 정상 교배 성공 안내 카드 -->
+        <div class="normal-success-box" id="normal-success-box">
+          <h4 style="margin:0; font-size:16px; font-weight:800; color:var(--accent-dark); display:flex; align-items:center; gap:8px;">
+            ✅ 올바르게 교배되었습니다!
+          </h4>
+          <p style="margin:0; font-size:14px; color:var(--ink); line-height:1.65;">
+            암술로 사용한 꽃의 수술을 미리 제거했기 때문에, 자가 수분 없이 순종 노란색 완두와 순종 초록색 완두 사이에서만 정확하게 교배가 일어났습니다.<br>
+            <b>자손 1대의 완두씨는 모두 노란색입니다!</b> 아래 [정리 보기]를 눌러 교과서 유전 원리를 확인해 보세요.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- 교배 결과 및 유전 원리 접이식 정리 박스 -->
+      <div class="summary-accordion">
+        <button class="summary-toggle-btn" id="summary-toggle-btn" onclick="toggleSummaryAccordion()">
+          <span>교배 결과 및 유전 원리 정리 보기 (교사용 발문 후 공개)</span>
+          <span id="summary-toggle-icon">▼</span>
+        </button>
+        <div class="summary-content" id="summary-content">
+          <div class="concept-grid">
+            
+            <div class="concept-item">
+              <h4 class="concept-item-title">🟡 자손 1대의 형질 관찰</h4>
+              <p class="concept-item-body">
+                노란색 순종 완두와 초록색 순종 완두를 교배하면, 자손 1대에서는 부모의 대립 형질 중 <b>한 가지(노란색)만</b> 나타납니다.
+              </p>
+            </div>
+
+            <div class="concept-item">
+              <h4 class="concept-item-title">✨ 우성과 열성의 뜻</h4>
+              <p class="concept-item-body">
+                대립 형질을 지닌 순종끼리 교배했을 때<br>
+                • <b>우성(優性)</b>: 자손 1대에서 나타나는 형질 (<b>노란색</b>)<br>
+                • <b>열성(劣性)</b>: 자손 1대에서 나타나지 않는 형질 (<b>초록색</b>)
+              </p>
+            </div>
+
+            <div class="concept-item" style="grid-column: 1 / -1;">
+              <h4 class="concept-item-title">⚖️ 우열의 원리</h4>
+              <p class="concept-item-body">
+                대립 형질을 지닌 순종 개체끼리 교배하면, <b>자손 1대에서는 부모의 대립 형질 중 한 가지만 나타납니다.</b> 이를 <b>우열의 원리</b>라고 합니다.
+              </p>
+            </div>
+
+          </div>
+
+          <!-- 오개념 바로잡기 카드 -->
+          <div class="caution-card">
+            <h4 class="caution-title">⚠️ 오개념 바로잡기: 우성은 더 우수한 형질일까?</h4>
+            <p class="caution-body">
+              '우성(優性)'과 '열성(劣性)'이라는 용어 때문에 우성이 더 훌륭하거나 뛰어난 성질이고, 열성은 부족하거나 뒤떨어진 성질이라고 오해하기 쉽습니다.<br>
+              하지만 이는 <b>형질의 우수함이나 생존의 유리함과는 전혀 관계가 없습니다.</b> 단지 순종끼리 교배했을 때 <b>자손 1대에서 겉으로 드러나는가(우성), 드러나지 않고 숨겨지는가(열성)</b>의 차이일 뿐입니다!
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    중학교 3학년 과학 「5-2-1 멘델이 밝힌 유전 원리(1)」 교과서 연계 시뮬레이션
+  </footer>
+
+</div>
+
+<!-- ============================================================
+     스크립트 (자가 수분 반복 시뮬레이션 & 교배 실험실 인터랙션)
+     ============================================================ -->
+<script>
+/* ------------------------------------------------------------
+   전역 탭 전환
+   ------------------------------------------------------------ */
+function switchTab(tabId) {
+  const btnPure = document.getElementById('main-tab-pure');
+  const btnCross = document.getElementById('main-tab-cross');
+  const panePure = document.getElementById('pane-pure');
+  const paneCross = document.getElementById('pane-cross');
+
+  if (tabId === 'pure') {
+    btnPure.classList.add('active');
+    btnCross.classList.remove('active');
+    panePure.style.display = 'block';
+    paneCross.style.display = 'none';
+  } else {
+    btnPure.classList.remove('active');
+    btnCross.classList.add('active');
+    panePure.style.display = 'none';
+    paneCross.style.display = 'block';
+  }
+}
+
+/* ------------------------------------------------------------
+   탭 ①: 순종 만들기 (자가 수분 반복) 로직
+   ------------------------------------------------------------ */
+const TOTAL_PLANTS = 20;
+const SEEDS_PER_PLANT = 8; // 각 그루당 꼬투리 속 씨앗 수
+
+let pureState = {
+  generation: 1,
+  // 20그루의 내부 유전 순종 여부 (학생에게는 절대 노출하지 않음)
+  // true: 순종(YY), false: 비순종(Yy)
+  plantIsPure: [],
+  harvestData: null, // { total, yellow, green }
+  history: [],       // [{ gen: 1, greenPct: 15.2 }, ...]
+  step: 'ready_to_plant' // 'ready_to_plant' | 'flowered' | 'harvested' | 'complete'
+};
+
+// 1세대 초기화: 20개 중 약 1/3 (7개) 비순종으로 구성
+function initPureGeneration(gen) {
+  pureState.generation = gen;
+  pureState.step = 'ready_to_plant';
+
+  if (gen === 1) {
+    const isPure = new Array(TOTAL_PLANTS).fill(true);
+    const impureIndices = [2, 5, 8, 11, 14, 17, 19];
+    impureIndices.forEach(idx => isPure[idx] = false);
+    pureState.plantIsPure = shuffleArray(isPure);
+    pureState.history = [];
+  }
+
+  updatePureUI();
+}
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// 1단계: 씨 20개 심기 & 자라나 자가 수분 꽃 피우기
+function plantCurrentGeneration() {
+  pureState.step = 'flowered';
+  updatePureUI();
+
+  // 자가 수분 애니메이션 힌트
+  const field = document.getElementById('garden-field');
+  const glow = document.createElement('div');
+  glow.className = 'pollination-glow';
+  glow.id = 'temp-pollination-glow';
+  field.appendChild(glow);
+
+  setTimeout(() => {
+    const g = document.getElementById('temp-pollination-glow');
+    if (g) g.remove();
+  }, 1800);
+}
+
+// 2단계: 꼬투리 수확하기
+function harvestCurrentGeneration() {
+  pureState.step = 'harvested';
+
+  let totalSeeds = 0;
+  let yellowSeeds = 0;
+  let greenSeeds = 0;
+
+  const plantsHarvest = [];
+
+  pureState.plantIsPure.forEach((isPure, idx) => {
+    let plantYellow = 0;
+    let plantGreen = 0;
+
+    if (isPure) {
+      // 순종 그루: 8개 모두 노란색
+      plantYellow = SEEDS_PER_PLANT;
+      plantGreen = 0;
+    } else {
+      // 비순종 그루: 약 1/4(2개) 초록색이지만,
+      // "순종이 아닌 그루는 최소 1개는 초록색이 나오도록 보정 -> 초록 0개 = 진짜 순종"
+      const greenCount = 1 + Math.floor(Math.random() * 2); // 1~2개
+      plantGreen = greenCount;
+      plantYellow = SEEDS_PER_PLANT - greenCount;
+    }
+
+    totalSeeds += SEEDS_PER_PLANT;
+    yellowSeeds += plantYellow;
+    greenSeeds += plantGreen;
+
+    plantsHarvest.push({ isPure, plantYellow, plantGreen });
+  });
+
+  const greenPct = (greenSeeds / totalSeeds) * 100;
+
+  pureState.harvestData = {
+    total: totalSeeds,
+    yellow: yellowSeeds,
+    green: greenSeeds,
+    greenPct: greenPct,
+    plants: plantsHarvest
+  };
+
+  // 기록에 추가 (중복 방지)
+  const existingIdx = pureState.history.findIndex(h => h.gen === pureState.generation);
+  if (existingIdx >= 0) {
+    pureState.history[existingIdx] = { gen: pureState.generation, greenPct };
+  } else {
+    pureState.history.push({ gen: pureState.generation, greenPct });
+  }
+
+  // 초록색 씨가 0개이면 순종 획득 완료!
+  if (greenSeeds === 0) {
+    pureState.step = 'complete';
+  }
+
+  updatePureUI();
+}
+
+// 3단계: 노란색만 골라 다음 세대 심기
+function nextGeneration() {
+  const nextGen = pureState.generation + 1;
+
+  // 자가 수분 거듭할수록 비순종 비율이 급격히 감소 -> 5~6세대에 0% 도달
+  const currentImpureCount = pureState.plantIsPure.filter(p => !p).length;
+  let nextImpureCount = 0;
+
+  if (nextGen === 2) {
+    nextImpureCount = Math.max(3, Math.floor(currentImpureCount * 0.65));
+  } else if (nextGen === 3) {
+    nextImpureCount = Math.max(2, Math.floor(currentImpureCount * 0.5));
+  } else if (nextGen === 4) {
+    nextImpureCount = 1;
+  } else if (nextGen === 5) {
+    nextImpureCount = Math.random() < 0.4 ? 0 : 1;
+  } else {
+    // 6세대 이상: 무조건 0개 (순종 100% 보장)
+    nextImpureCount = 0;
+  }
+
+  const isPure = new Array(TOTAL_PLANTS).fill(true);
+  for (let i = 0; i < nextImpureCount; i++) {
+    isPure[i] = false;
+  }
+
+  pureState.plantIsPure = shuffleArray(isPure);
+  pureState.generation = nextGen;
+  pureState.step = 'ready_to_plant';
+  pureState.harvestData = null;
+
+  updatePureUI();
+}
+
+function resetPureTab() {
+  initPureGeneration(1);
+}
+
+// UI 갱신 함수
+function updatePureUI() {
+  document.getElementById('pure-gen-label').textContent = `제 ${pureState.generation} 세대`;
+
+  const instructionEl = document.getElementById('pure-stage-instruction');
+  const btnPlant = document.getElementById('btn-pure-plant');
+  const btnHarvest = document.getElementById('btn-pure-harvest');
+  const btnNext = document.getElementById('btn-pure-next');
+  const banner = document.getElementById('pure-success-banner');
+
+  if (pureState.step === 'ready_to_plant') {
+    instructionEl.innerHTML = `노란색 완두씨 20개가 준비되었습니다. <b>[1단계: 심기]</b>를 누르세요.`;
+    btnPlant.disabled = false;
+    btnHarvest.disabled = true;
+    btnNext.disabled = true;
+    banner.classList.remove('active');
+  } else if (pureState.step === 'flowered') {
+    instructionEl.innerHTML = `완두가 자라 꽃이 피고, <b>꽃잎 속에서 자가 수분</b>이 일어났습니다! <b>[2단계: 수확하기]</b>를 누르세요.`;
+    btnPlant.disabled = true;
+    btnHarvest.disabled = false;
+    btnNext.disabled = true;
+  } else if (pureState.step === 'harvested') {
+    instructionEl.innerHTML = `꼬투리가 열렸습니다! 초록색 씨를 골라내고 <b>[3단계: 노란색만 다시 심기]</b>를 누르세요.`;
+    btnPlant.disabled = true;
+    btnHarvest.disabled = true;
+    btnNext.disabled = false;
+  } else if (pureState.step === 'complete') {
+    instructionEl.innerHTML = `🎉 <b>초록색 씨가 하나도 나오지 않는 노란색 순종 완두를 얻었습니다!</b>`;
+    btnPlant.disabled = true;
+    btnHarvest.disabled = true;
+    btnNext.disabled = true;
+    banner.classList.add('active');
+  }
+
+  renderPlantsGrid();
+
+  const statTotal = document.getElementById('stat-total-seeds');
+  const statYellow = document.getElementById('stat-yellow-seeds');
+  const statGreen = document.getElementById('stat-green-seeds');
+
+  if (pureState.harvestData) {
+    const h = pureState.harvestData;
+    statTotal.textContent = `${h.total} 개`;
+    statYellow.textContent = `${h.yellow} 개 (${((h.yellow / h.total) * 100).toFixed(1)}%)`;
+    statGreen.textContent = `${h.green} 개 (${h.greenPct.toFixed(1)}%)`;
+  } else {
+    statTotal.textContent = `- 개`;
+    statYellow.textContent = `- 개 (-)`;
+    statGreen.textContent = `- 개 (-)`;
+  }
+
+  renderPureChart();
+}
+
+// 20개 식물 그리드 렌더링
+function renderPlantsGrid() {
+  const grid = document.getElementById('plants-grid');
+  grid.innerHTML = '';
+
+  for (let i = 0; i < TOTAL_PLANTS; i++) {
+    const card = document.createElement('div');
+    card.className = 'plant-card';
+
+    const idLabel = document.createElement('span');
+    idLabel.className = 'plant-id';
+    idLabel.textContent = `#${i + 1}`;
+    card.appendChild(idLabel);
+
+    if (pureState.step === 'ready_to_plant') {
+      const seedWrap = document.createElement('div');
+      seedWrap.className = 'plant-graphic-wrap';
+      seedWrap.innerHTML = `
+        <div class="pea-seed yellow" title="노란색 완두씨"></div>
+        <span style="font-size:10px; color:var(--ink-soft); margin-top:4px;">노란 완두씨</span>
+      `;
+      card.appendChild(seedWrap);
+    } else if (pureState.step === 'flowered') {
+      const plantWrap = document.createElement('div');
+      plantWrap.className = 'plant-graphic-wrap';
+      plantWrap.innerHTML = `
+        <svg class="plant-svg" viewBox="0 0 50 70">
+          <path d="M 25,70 Q 24,40 25,20" stroke="#589E34" stroke-width="3.5" fill="none"/>
+          <path d="M 25,50 Q 12,45 15,38 Q 23,42 25,48" fill="#6FB849"/>
+          <path d="M 25,40 Q 38,35 35,28 Q 27,32 25,38" fill="#6FB849"/>
+          <path d="M 25,22 Q 15,10 25,4 Q 35,10 25,22 Z" fill="#FFFDF8" stroke="#D1C8B4" stroke-width="1.2"/>
+          <circle cx="25" cy="14" r="2.5" fill="#F4C430"/>
+        </svg>
+        <span style="font-size:9.5px; font-weight:700; color:var(--accent-dark); text-align:center;">자가 수분 중</span>
+      `;
+      card.appendChild(plantWrap);
+    } else if (pureState.step === 'harvested' || pureState.step === 'complete') {
+      const harvestInfo = pureState.harvestData ? pureState.harvestData.plants[i] : null;
+      const podWrap = document.createElement('div');
+      podWrap.className = 'pod-graphic-wrap';
+
+      if (harvestInfo) {
+        let seedsHtml = '';
+        for (let y = 0; y < harvestInfo.plantYellow; y++) {
+          seedsHtml += `<div class="pea-seed yellow small" title="노란색 씨"></div>`;
+        }
+        for (let g = 0; g < harvestInfo.plantGreen; g++) {
+          seedsHtml += `<div class="pea-seed green small" title="초록색 씨"></div>`;
+        }
+
+        const greenNotice = harvestInfo.plantGreen > 0 
+          ? `<span class="green-warn">초록 ${harvestInfo.plantGreen}개</span>` 
+          : `<span style="color:#589E34">노랑만 8개</span>`;
+
+        podWrap.innerHTML = `
+          <div class="pod-box">${seedsHtml}</div>
+          <span class="pod-count-label">${greenNotice}</span>
+        `;
+      }
+      card.appendChild(podWrap);
+    }
+
+    grid.appendChild(card);
+  }
+}
+
+// 세대별 누적 막대그래프 SVG 렌더링
+function renderPureChart() {
+  const svg = document.getElementById('pure-chart-svg');
+  svg.innerHTML = '';
+
+  const maxGenDisplay = 7;
+  const chartWidth = 340;
+  const chartHeight = 160;
+  const padLeft = 40;
+  const padBottom = 30;
+  const padTop = 15;
+  const padRight = 15;
+
+  const plotW = chartWidth - padLeft - padRight;
+  const plotH = chartHeight - padTop - padBottom;
+
+  // Y축 가이드선
+  const ySteps = [0, 10, 20];
+  ySteps.forEach(val => {
+    const yPos = padTop + plotH - (val / 25) * plotH;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', padLeft);
+    line.setAttribute('x2', chartWidth - padRight);
+    line.setAttribute('y1', yPos);
+    line.setAttribute('y2', yPos);
+    line.setAttribute('stroke', '#E2DCCD');
+    line.setAttribute('stroke-dasharray', val === 0 ? 'none' : '3,3');
+    svg.appendChild(line);
+
+    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    txt.setAttribute('x', padLeft - 6);
+    txt.setAttribute('y', yPos + 4);
+    txt.setAttribute('text-anchor', 'end');
+    txt.setAttribute('font-size', '10');
+    txt.setAttribute('fill', '#8A929A');
+    txt.setAttribute('font-family', 'var(--mono)');
+    txt.textContent = `${val}%`;
+    svg.appendChild(txt);
+  });
+
+  // X축 레이블
+  const slotW = plotW / maxGenDisplay;
+  for (let g = 1; g <= maxGenDisplay; g++) {
+    const xMid = padLeft + (g - 0.5) * slotW;
+    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    txt.setAttribute('x', xMid);
+    txt.setAttribute('y', chartHeight - 8);
+    txt.setAttribute('text-anchor', 'middle');
+    txt.setAttribute('font-size', '10.5');
+    txt.setAttribute('font-weight', g === pureState.generation ? 'bold' : 'normal');
+    txt.setAttribute('fill', g === pureState.generation ? '#1B1D22' : '#8A929A');
+    txt.setAttribute('font-family', 'Pretendard');
+    txt.textContent = `${g}대`;
+    svg.appendChild(txt);
+  }
+
+  // 막대 그리기
+  pureState.history.forEach(item => {
+    if (item.gen > maxGenDisplay) return;
+
+    const xLeft = padLeft + (item.gen - 1) * slotW + slotW * 0.18;
+    const barW = slotW * 0.64;
+    const barH = (item.greenPct / 25) * plotH;
+    const yTop = padTop + plotH - barH;
+
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', xLeft);
+    rect.setAttribute('y', yTop);
+    rect.setAttribute('width', barW);
+    rect.setAttribute('height', Math.max(2, barH));
+    rect.setAttribute('rx', '3');
+    rect.setAttribute('fill', item.greenPct === 0 ? '#2F8F94' : '#589E34');
+    svg.appendChild(rect);
+
+    const valTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    valTxt.setAttribute('x', xLeft + barW / 2);
+    valTxt.setAttribute('y', yTop - 4);
+    valTxt.setAttribute('text-anchor', 'middle');
+    valTxt.setAttribute('font-size', '9.5');
+    valTxt.setAttribute('font-weight', 'bold');
+    valTxt.setAttribute('fill', item.greenPct === 0 ? '#2F8F94' : '#3E7322');
+    valTxt.setAttribute('font-family', 'var(--mono)');
+    valTxt.textContent = `${item.greenPct.toFixed(1)}%`;
+    svg.appendChild(valTxt);
+  });
+}
+
+// 탭 ① 초기 실행
+initPureGeneration(1);
+
+
+/* ------------------------------------------------------------
+   탭 ②: 교배 실험실 로직
+   ------------------------------------------------------------ */
+let crossState = {
+  activeTool: 'scissor', // 'scissor' | 'brush'
+  emasculatedFlower: null, // 'yellow' | 'green' | null
+  pollenSource: null,     // 'yellow' | 'green' | null
+  pollinatedTarget: null, // 'yellow' | 'green' | null
+  step: 1
+};
+
+// 도구 선택 (가위 vs 붓)
+function setLabTool(tool) {
+  crossState.activeTool = tool;
+
+  const btnScissor = document.getElementById('tool-btn-scissor');
+  const btnBrush = document.getElementById('tool-btn-brush');
+
+  if (tool === 'scissor') {
+    btnScissor.classList.add('active');
+    btnBrush.classList.remove('active');
+    document.getElementById('lab-guide-msg').innerHTML = `
+      ✂️ <b>가위 선택됨:</b> 수술을 제거할 완두꽃의 <b>[수술 제거하기]</b> 또는 <b>수술</b>을 클릭하세요.
+    `;
+    document.getElementById('lab-tool-status').textContent = '도구: 수술 제거 가위';
+  } else {
+    btnScissor.classList.remove('active');
+    btnBrush.classList.add('active');
+
+    if (!crossState.pollenSource) {
+      document.getElementById('lab-guide-msg').innerHTML = `
+        🖌️ <b>붓 선택됨:</b> 꽃가루를 묻혀올 꽃의 <b>[수술(꽃가루)]</b>을 클릭하세요!
+      `;
+      document.getElementById('lab-tool-status').textContent = '도구: 꽃가루 붓 (꽃가루 채취 대기)';
+    } else if (!crossState.pollinatedTarget) {
+      const donorName = crossState.pollenSource === 'yellow' ? '노란색' : '초록색';
+      const targetName = crossState.pollenSource === 'yellow' ? '초록색' : '노란색';
+      document.getElementById('lab-guide-msg').innerHTML = `
+        ✨ <b>${donorName} 꽃가루 묻음:</b> 이제 <b>${targetName} 꽃의 [암술머리]</b>를 클릭해 수분하세요.
+      `;
+      document.getElementById('lab-tool-status').textContent = `도구: 꽃가루 붓 (${donorName} 꽃가루)`;
+    }
+  }
+}
+
+// 수술 클릭 처리
+function handleStamenClick(flower) {
+  if (crossState.activeTool === 'scissor') {
+    handleEmasculate(flower);
+  } else {
+    collectPollen(flower);
+  }
+}
+
+// 수술 제거 (거세)
+function handleEmasculate(flower) {
+  if (crossState.emasculatedFlower) {
+    // 이미 한쪽을 제거한 경우
+    const currentName = crossState.emasculatedFlower === 'yellow' ? '노란색' : '초록색';
+    document.getElementById('lab-guide-msg').innerHTML = `
+      ℹ️ 이미 <b>${currentName} 꽃의 수술</b>을 제거했습니다. 이제 붓[🖌️]으로 다른 꽃의 꽃가루를 옮겨보세요!
+    `;
+    setLabTool('brush');
+    return;
+  }
+
+  crossState.emasculatedFlower = flower;
+  crossState.step = 2;
+
+  // 해당 꽃의 수술 그래픽 숨기기
+  const stamensGroup = document.getElementById(`stamens-group-${flower}`);
+  if (stamensGroup) stamensGroup.style.display = 'none';
+
+  // 상태 태그 갱신
+  const tag = document.getElementById(`tag-flower-${flower}`);
+  if (tag) {
+    tag.textContent = '수술 제거됨 (암술만 남음)';
+    tag.style.background = '#E8F5E9';
+    tag.style.color = '#2E7D32';
+  }
+
+  const btn = document.getElementById(`btn-emasculate-${flower}`);
+  if (btn) btn.disabled = true;
+
+  const thisFlowerName = flower === 'yellow' ? '노란색' : '초록색';
+  const otherFlowerName = flower === 'yellow' ? '초록색' : '노란색';
+
+  // 붓 도구로 자동 전환 및 안내
+  setLabTool('brush');
+  document.getElementById('lab-guide-msg').innerHTML = `
+    ✂️ <b>${thisFlowerName} 꽃</b>의 수술을 제거했습니다! 
+    이제 <b>${otherFlowerName} 꽃의 수술(꽃가루)</b>을 클릭해 붓에 꽃가루를 묻히세요.
+  `;
+  document.getElementById('lab-tool-status').textContent = `수술 제거 완료 (${thisFlowerName} 꽃)`;
+
+  updateStepper(2);
+}
+
+// 꽃가루 채취 (붓에 묻히기)
+function collectPollen(flower) {
+  // 수술이 이미 제거된 꽃인 경우
+  if (crossState.emasculatedFlower === flower) {
+    document.getElementById('lab-guide-msg').innerHTML = `
+      ⚠️ 이 꽃은 수술이 이미 제거되었습니다. <b>반대쪽 온전한 꽃의 수술</b>을 클릭하세요!
+    `;
+    return;
+  }
+
+  crossState.pollenSource = flower;
+  crossState.step = 2;
+
+  const flowerName = flower === 'yellow' ? '노란색' : '초록색';
+  const targetFlowerId = flower === 'yellow' ? 'green' : 'yellow';
+  const targetFlowerName = flower === 'yellow' ? '초록색' : '노란색';
+
+  // 붓 도구 버튼 상태 표시
+  const btnBrush = document.getElementById('tool-btn-brush');
+  btnBrush.classList.add('has-pollen');
+  document.getElementById('brush-text-indicator').innerHTML = `꽃가루 묻음 ✨ (${flowerName})`;
+
+  document.getElementById('lab-guide-msg').innerHTML = `
+    ✨ <b>${flowerName} 꽃의 꽃가루</b>를 붓에 묻혔습니다! 
+    이제 <b>${targetFlowerName} 꽃의 [암술머리]</b>를 클릭하세요.
+  `;
+  document.getElementById('lab-tool-status').textContent = `꽃가루 채취됨 (${flowerName})`;
+
+  // 목표 꽃 카드 강조
+  document.getElementById('flower-card-yellow').classList.remove('target-pollination');
+  document.getElementById('flower-card-green').classList.remove('target-pollination');
+  document.getElementById(`flower-card-${targetFlowerId}`).classList.add('target-pollination');
+
+  updateStepper(2);
+}
+
+// 암술머리 클릭 (수분 완료)
+function handleStigmaClick(flower) {
+  if (!crossState.pollenSource) {
+    document.getElementById('lab-guide-msg').innerHTML = `
+      ℹ️ 먼저 <b>[수술(꽃가루)]</b>을 클릭하여 붓에 꽃가루를 묻혀오세요!
+    `;
+    setLabTool('brush');
+    return;
+  }
+
+  crossState.pollinatedTarget = flower;
+  crossState.step = 3;
+
+  // 암술머리에 꽃가루 입자 표시
+  const grains = document.getElementById(`pollen-grains-${flower}`);
+  if (grains) grains.style.display = 'block';
+
+  // 붓 상태 초기화
+  const btnBrush = document.getElementById('tool-btn-brush');
+  btnBrush.classList.remove('has-pollen');
+  document.getElementById('brush-text-indicator').innerHTML = `수분 완료! ✨`;
+
+  // 목표 강조 해제
+  document.getElementById('flower-card-yellow').classList.remove('target-pollination');
+  document.getElementById('flower-card-green').classList.remove('target-pollination');
+
+  // 씨 맺기 버튼 활성화
+  const btnF1 = document.getElementById('btn-make-f1');
+  btnF1.disabled = false;
+
+  document.getElementById('lab-guide-msg').innerHTML = `
+    🫛 <b>3단계:</b> 수분이 완료되었습니다! 
+    가운데 <b>[씨 맺기 (확인)]</b> 버튼을 눌러 자손 1대 꼬투리를 확인하세요.
+  `;
+  document.getElementById('lab-tool-status').textContent = `수분 완료 → 씨 맺기 대기`;
+
+  updateStepper(3);
+}
+
+// 꼬투리 수확 및 자손 1대 확인
+function harvestF1Pod() {
+  const resultStage = document.getElementById('f1-result-stage');
+  const seedsRow = document.getElementById('f1-seeds-row');
+  const descEl = document.getElementById('f1-result-desc');
+  const warningBox = document.getElementById('branch-warning-box');
+  const successBox = document.getElementById('normal-success-box');
+
+  seedsRow.innerHTML = '';
+  resultStage.classList.add('active');
+
+  // 분기 판별:
+  // 수분된 대상 꽃의 수술을 미리 제거했는가?
+  // (수술을 제거하지 않은 꽃에 꽃가루를 옮겼다면 자가 수분이 함께 일어남!)
+  const targetFlower = crossState.pollinatedTarget;
+  const isTargetEmasculated = (crossState.emasculatedFlower === targetFlower);
+
+  if (!isTargetEmasculated) {
+    // 분기 A: 수술을 미리 제거하지 않고 교배한 경우 (자가 수분 오염)
+    if (targetFlower === 'green') {
+      // 초록색 꽃에 수술을 떼지 않고 수분한 경우 -> 자신의 꽃가루(초록)와 외부 꽃가루(노랑)가 섞임
+      for (let i = 0; i < 4; i++) {
+        seedsRow.innerHTML += `<div class="pea-seed yellow" style="width:36px; height:36px;" title="노란색 씨"></div>`;
+      }
+      for (let i = 0; i < 4; i++) {
+        seedsRow.innerHTML += `<div class="pea-seed green" style="width:36px; height:36px;" title="초록색 씨"></div>`;
+      }
+      descEl.innerHTML = `<span style="color:var(--warn)">⚠️ 초록색 완두씨 4개와 노란색 완두씨 4개가 뒤섞여 나왔습니다!</span>`;
+    } else {
+      // 노란색 꽃에 수술을 떼지 않고 수분한 경우
+      for (let i = 0; i < 8; i++) {
+        seedsRow.innerHTML += `<div class="pea-seed yellow" style="width:36px; height:36px;" title="노란색 씨"></div>`;
+      }
+      descEl.innerHTML = `<span style="color:var(--warn)">⚠️ 수술을 제거하지 않아 원래 꽃의 꽃가루로 자가 수분된 씨가 섞였을 위험이 있습니다!</span>`;
+    }
+
+    warningBox.classList.add('active');
+    successBox.classList.remove('active');
+    document.getElementById('lab-guide-msg').innerHTML = `
+      ⚠️ <b>수술을 제거하지 않았더니 씨가 섞여 나왔습니다!</b> 아래 질문을 확인해 보세요.
+    `;
+  } else {
+    // 분기 B: 올바르게 수술을 미리 제거한 경우 (정상 교배)
+    // 순종 노란색 × 순종 초록색의 자손 1대는 어느 방향으로 교배하든 100% 노란색 완두씨!
+    for (let i = 0; i < 8; i++) {
+      seedsRow.innerHTML += `<div class="pea-seed yellow" style="width:36px; height:36px;" title="자손 1대 노란색 완두씨"></div>`;
+    }
+
+    descEl.innerHTML = `<span style="color:var(--accent-dark); font-size:16px;">🟡 자손 1대의 완두씨는 8개 모두 노란색입니다! (100%)</span>`;
+    warningBox.classList.remove('active');
+    successBox.classList.add('active');
+
+    document.getElementById('lab-guide-msg').innerHTML = `
+      🎉 <b>교배 성공!</b> 자손 1대에서는 부모의 대립 형질 중 노란색만 나타났습니다.
+    `;
+  }
+
+  document.getElementById('btn-make-f1').disabled = true;
+  document.getElementById('lab-tool-status').textContent = `실험 완료`;
+}
+
+// 단계 표시 네비게이터 갱신
+function updateStepper(activeStep) {
+  for (let s = 1; s <= 3; s++) {
+    const el = document.getElementById(`step-nav-${s}`);
+    if (s === activeStep) {
+      el.className = 'stepper-item active';
+    } else if (s < activeStep) {
+      el.className = 'stepper-item done';
+    } else {
+      el.className = 'stepper-item';
+    }
+  }
+}
+
+// 탭 ② 초기화
+function resetCrossTab() {
+  crossState = {
+    activeTool: 'scissor',
+    emasculatedFlower: null,
+    pollenSource: null,
+    pollinatedTarget: null,
+    step: 1
+  };
+
+  // 꽃 복원
+  const stamensY = document.getElementById('stamens-group-yellow');
+  if (stamensY) stamensY.style.display = 'block';
+  const stamensG = document.getElementById('stamens-group-green');
+  if (stamensG) stamensG.style.display = 'block';
+
+  const grainsY = document.getElementById('pollen-grains-yellow');
+  if (grainsY) grainsY.style.display = 'none';
+  const grainsG = document.getElementById('pollen-grains-green');
+  if (grainsG) grainsG.style.display = 'none';
+
+  document.getElementById('tag-flower-yellow').textContent = '수술 있음';
+  document.getElementById('tag-flower-yellow').style.background = 'var(--core)';
+  document.getElementById('tag-flower-yellow').style.color = 'var(--ink)';
+
+  document.getElementById('tag-flower-green').textContent = '수술 있음';
+  document.getElementById('tag-flower-green').style.background = 'var(--core)';
+  document.getElementById('tag-flower-green').style.color = 'var(--ink)';
+
+  document.getElementById('btn-emasculate-yellow').disabled = false;
+  document.getElementById('btn-emasculate-green').disabled = false;
+  document.getElementById('btn-make-f1').disabled = true;
+
+  const btnBrush = document.getElementById('tool-btn-brush');
+  btnBrush.classList.remove('has-pollen');
+  document.getElementById('brush-text-indicator').innerHTML = `꽃가루 옮기기 (붓)`;
+
+  document.getElementById('flower-card-yellow').className = 'flower-card';
+  document.getElementById('flower-card-green').className = 'flower-card';
+
+  document.getElementById('f1-result-stage').classList.remove('active');
+  document.getElementById('branch-warning-box').classList.remove('active');
+  document.getElementById('normal-success-box').classList.remove('active');
+
+  setLabTool('scissor');
+  updateStepper(1);
+}
+
+// 교과서 개념 정리 아코디언 토글
+function toggleSummaryAccordion() {
+  const content = document.getElementById('summary-content');
+  const icon = document.getElementById('summary-toggle-icon');
+
+  if (content.classList.contains('open')) {
+    content.classList.remove('open');
+    icon.textContent = '▼';
+  } else {
+    content.classList.add('open');
+    icon.textContent = '▲';
+  }
+}
+</script>
+
+</body>
+</html>

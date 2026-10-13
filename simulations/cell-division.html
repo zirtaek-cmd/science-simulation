@@ -4,20 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>세포 크기와 물질 교환 시뮬레이션</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
 <style>
   :root{
-    --bg: #EFECE4;
-    --paper: #FBFAF6;
-    --ink: #21262B;
-    --ink-soft: #62696F;
-    --line: #D9D3C4;
+    --bg: #EEF1F7;
+    --paper: #FFFFFF;
+    --ink: #1B1D22;
+    --ink-soft: #5B6170;
+    --line: #C9CFDB;
     --absorbed: #2F8F94;
-    --absorbed-dark: #1F6669;
-    --core: #F4EEDD;
-    --warn: #B5523B;
+    --absorbed-dark: #1E3A8A;
+    --core: #E8EEFB;
+    --warn: #B23A26;
     --split: #C2932B;
-    --mono: 'JetBrains Mono', 'Pretendard', monospace;
+    --mono: 'Pretendard', monospace;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -361,6 +361,16 @@
   @media (prefers-reduced-motion: reduce){
     .bubble, .liquid::before{animation:none;}
   }
+
+/* 학원 교재 테마 (2026-10-13) — 학습지·슬라이드와 같은 색·배지·글꼴 */
+body { font-family: 'Pretendard', -apple-system, sans-serif; }
+.eyebrow { font-family: 'Pretendard', sans-serif; font-weight: 900; color: #B23A26; letter-spacing: .14em; }
+.eyebrow-badge { background: #FDECE8; color: #B23A26; border: 0; font-weight: 800; letter-spacing: 0; }
+h1 { font-weight: 900; letter-spacing: -0.02em; }
+header { border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.panel, .card { border-color: var(--line); }
+.step-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.step-btn.active * { color: #fff; }
 </style>
 </head>
 <body>
