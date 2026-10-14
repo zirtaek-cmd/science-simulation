@@ -92,11 +92,11 @@ h1 {
 }
 
 /* ============================================================
-   상단 메인 탭 (활동 ① 순종 만들기 / 활동 ② 교배 실험실)
+   상단 메인 탭 (활동 ① 염색체로 보는 순종과 잡종 / 활동 ② 순종 만들기 / 활동 ③ 교배 실험실)
    ============================================================ */
 .main-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 12px;
   margin-bottom: 18px;
 }
@@ -965,6 +965,168 @@ header { border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
 .panel, .card { border-color: var(--line); }
 .step-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 .step-btn.active * { color: #fff; }
+
+/* ============================================================
+   탭 ③: 염색체로 보는 순종과 잡종
+   ============================================================ */
+@media (max-width: 760px) {
+  .main-tabs { grid-template-columns: 1fr; }
+}
+.chromo-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.chromo-tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.letter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+  user-select: none;
+}
+.letter-toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+.parents-stage {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+@media (max-width: 860px) {
+  .parents-stage { grid-template-columns: 1fr; }
+  .parents-cross-mark { display: none; }
+}
+.parents-cross-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  font-weight: 900;
+  color: var(--ink-soft);
+}
+.parent-card {
+  background: #F9F7F1;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.parent-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+.parent-title { margin: 0; font-size: 16px; font-weight: 800; }
+.purity-tag {
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.purity-tag.pure { background: #E8EEFB; color: var(--accent); }
+.purity-tag.hybrid { background: #FDECE8; color: var(--warn); }
+
+.cell-svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+/* 염색체·세포 이동 애니메이션 (SVG 그룹을 CSS transform 으로 이동) */
+.anim { transition: transform .9s cubic-bezier(.45,.05,.3,1), opacity .7s ease; }
+.cell-mem { fill: #FFF7EC; stroke: #D9A86C; stroke-width: 3; }
+.chromatid-body { fill: #8C7FC0; stroke: #4F4386; stroke-width: 2; }
+.gene-band.Y { fill: #F4C430; stroke: #9C7410; stroke-width: 2; }
+.gene-band.y { fill: #589E34; stroke: #2F5A19; stroke-width: 2; }
+.gene-text { font-family: 'Pretendard', sans-serif; font-weight: 900; font-size: 16px; text-anchor: middle; dominant-baseline: central; }
+.gene-text.Y { fill: #4A3600; }
+.gene-text.y { fill: #fff; }
+.chromo-pane:not(.show-letters) .gene-text,
+.chromo-pane:not(.show-letters) .gene-letter { display: none; }
+
+.gamete-hit { fill: transparent; cursor: pointer; pointer-events: all; }
+.gamete-ring { fill: none; stroke: transparent; stroke-width: 5; transition: stroke .15s; pointer-events: none; }
+.gamete-slot:hover .gamete-ring { stroke: rgba(30, 58, 138, .45); }
+.gamete-slot.selected .gamete-ring { stroke: var(--warn); }
+
+.allele-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.allele-col { display: flex; flex-direction: column; gap: 5px; align-items: stretch; }
+.allele-col-label { font-size: 12px; font-weight: 700; color: var(--ink-soft); text-align: center; }
+.allele-btns { display: flex; gap: 5px; }
+.allele-btns button { flex: 1; font-size: 13px; padding: 8px 6px; }
+.allele-btns button.pick-Y.on { background: #F4C430; border-color: #C29315; color: #4A3600; }
+.allele-btns button.pick-y.on { background: #589E34; border-color: #3E7322; color: #fff; }
+.allele-lock-msg { font-size: 12.5px; color: var(--ink-soft); text-align: center; padding: 8px 0; }
+
+.parent-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.parent-info b { color: var(--ink); }
+
+.meiosis-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--core);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.meiosis-caption { flex: 1; min-width: 240px; margin: 0; font-size: 14.5px; font-weight: 600; line-height: 1.55; }
+
+.fert-stage {
+  background: #F0F4FC;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+.fert-stage.active { display: flex; }
+.fert-title { margin: 0; font-size: 16px; font-weight: 800; }
+.fert-svg { width: 100%; max-width: 760px; height: auto; display: block; margin: 0 auto; overflow: visible; }
+.fert-label { font-family: 'Pretendard', sans-serif; font-size: 15px; font-weight: 800; fill: var(--ink-soft); text-anchor: middle; }
+.fert-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+.offspring-result {
+  display: none;
+  align-items: center;
+  gap: 16px;
+  background: var(--paper);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 14px 18px;
+}
+.offspring-result.active { display: flex; }
+.offspring-result .pea-seed { width: 54px; height: 54px; flex-shrink: 0; }
+.offspring-text { font-size: 15px; line-height: 1.6; margin: 0; }
+
+.offspring-record { font-size: 13px; color: var(--ink-soft); display: none; flex-direction: column; gap: 6px; }
+.offspring-record.active { display: flex; }
+.record-seeds { display: flex; flex-wrap: wrap; gap: 4px; }
 </style>
 </head>
 <body>
@@ -979,15 +1141,26 @@ header { border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
     <h1>멘델이 밝힌 유전 원리 (1) — 완두의 형질과 순종 교배</h1>
     <p class="lead">
       멘델은 대립 형질이 뚜렷한 완두를 교배하여 유전의 원리를 밝혔어요.
-      자가 수분을 거듭해 노란색 순종 완두를 얻는 과정과, 순종 노란색 완두와 순종 초록색 완두를 교배할 때 자손 1대에서 어떤 형질이 나타나는지 직접 실험해 봅시다.
+      먼저 세포 속 상동 염색체로 순종과 잡종을 나타내고, 생식세포 분열과 수정을 거쳐 자손의 세포가 만들어지는 과정을 확인해 봅시다.
+      이어서 자가 수분을 거듭해 노란색 순종 완두를 얻는 과정과, 순종 노란색 완두와 순종 초록색 완두를 교배할 때 자손 1대에서 어떤 형질이 나타나는지 직접 실험해 봅시다.
     </p>
   </header>
 
-  <!-- 상단 대분류 탭 (활동 ① -> 활동 ②) -->
+  <!-- 상단 대분류 탭 (활동 ① 염색체 → 활동 ② 순종 만들기 → 활동 ③ 교배 실험실) -->
   <nav class="main-tabs" role="tablist">
-    <button class="main-tab-btn active" id="main-tab-pure" onclick="switchTab('pure')">
+    <button class="main-tab-btn active" id="main-tab-chromo" onclick="switchTab('chromo')">
       <div class="tab-left">
         <span class="tab-num-badge">활동 ①</span>
+        <div>
+          <div>염색체로 보는 순종과 잡종</div>
+          <span class="tab-tag">상동 염색체 · 생식세포 분열 · 수정</span>
+        </div>
+      </div>
+      <span style="font-size:20px">🧬</span>
+    </button>
+    <button class="main-tab-btn" id="main-tab-pure" onclick="switchTab('pure')">
+      <div class="tab-left">
+        <span class="tab-num-badge">활동 ②</span>
         <div>
           <div>순종 만들기 (자가 수분 반복)</div>
           <span class="tab-tag">교과서 176쪽 탐구</span>
@@ -997,7 +1170,7 @@ header { border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
     </button>
     <button class="main-tab-btn" id="main-tab-cross" onclick="switchTab('cross')">
       <div class="tab-left">
-        <span class="tab-num-badge">활동 ②</span>
+        <span class="tab-num-badge">활동 ③</span>
         <div>
           <div>교배 실험실 (순종 교배)</div>
           <span class="tab-tag">교과서 177쪽 해 보기</span>
@@ -1010,7 +1183,7 @@ header { border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
   <!-- ========================================================
        탭 ①: 순종 만들기 (자가 수분 반복)
        ======================================================== -->
-  <section id="pane-pure">
+  <section id="pane-pure" style="display: none;">
     <div class="pure-layout">
       
       <!-- 좌측: 화단 및 시뮬레이션 무대 -->
@@ -1376,6 +1549,79 @@ header { border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
     </div>
   </section>
 
+  <!-- ========================================================
+       탭 ③: 염색체로 보는 순종과 잡종 (상동 염색체 → 생식세포 분열 → 수정)
+       ======================================================== -->
+  <section id="pane-chromo" class="chromo-pane">
+    <div class="chromo-layout">
+
+      <div class="step-stepper">
+        <div class="stepper-item active" id="chromo-nav-1">
+          <span class="stepper-badge">1단계</span>
+          <span>부모 세포의 유전자 정하기</span>
+        </div>
+        <div class="stepper-item" id="chromo-nav-2">
+          <span class="stepper-badge">2단계</span>
+          <span>생식세포 분열</span>
+        </div>
+        <div class="stepper-item" id="chromo-nav-3">
+          <span class="stepper-badge">3단계</span>
+          <span>수정 → 자손의 세포</span>
+        </div>
+      </div>
+
+      <div class="lab-stage">
+        <div class="lab-header-bar">
+          <p class="lab-guide-text" id="chromo-guide-msg"></p>
+          <div class="chromo-tools">
+            <label class="letter-toggle"><input type="checkbox" id="chromo-letter-toggle" onchange="toggleGeneLetters(this.checked)"> 유전자 기호(Y, y) 보기</label>
+            <button class="secondary" onclick="resetChromoTab()">처음부터 다시 ↺</button>
+          </div>
+        </div>
+
+        <div class="parents-stage">
+          <div class="parent-card" id="parent-card-0"></div>
+          <div class="parents-cross-mark">×</div>
+          <div class="parent-card" id="parent-card-1"></div>
+        </div>
+
+        <div class="meiosis-bar">
+          <button class="large accent" id="btn-meiosis" onclick="advanceMeiosis()">✂️ 생식세포 분열 ▶</button>
+          <p class="meiosis-caption" id="meiosis-caption"></p>
+        </div>
+
+        <div class="fert-stage" id="fert-stage">
+          <h3 class="fert-title">💞 수정: 두 부모의 생식세포가 만나 자손의 세포가 돼요</h3>
+          <p class="stage-instruction" id="fert-guide">위에서 <b>부모 ①과 부모 ②의 생식세포를 하나씩</b> 눌러 고르거나, [무작위로 고르기]를 누르세요.</p>
+          <svg class="fert-svg" id="fert-svg" viewBox="0 0 640 270"></svg>
+          <div class="fert-btns">
+            <button class="large secondary" id="btn-fert-random" onclick="pickRandomGametes()">🎲 무작위로 고르기</button>
+            <button class="large secondary" id="btn-fert-again" onclick="resetFertilization()" style="display:none;">다른 생식세포로 다시 ↺</button>
+          </div>
+          <div class="offspring-result" id="offspring-result">
+            <div class="pea-seed" id="offspring-seed"></div>
+            <p class="offspring-text" id="offspring-text"></p>
+          </div>
+          <div class="offspring-record" id="offspring-record">
+            <b style="color:var(--ink)">지금까지 얻은 자손</b>
+            <div class="record-seeds" id="record-seeds"></div>
+            <span id="record-summary"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="think-box">
+        <h4>💡 생각해 보기</h4>
+        <p>
+          ① 노란색 순종과 노란색 잡종은 겉모습이 같아요. 두 세포의 <b>상동 염색체</b>는 어떻게 다른가요?<br>
+          ② 순종 부모와 잡종 부모가 만드는 <b>생식세포의 종류</b>를 비교해 보세요. 어느 쪽에서 서로 다른 생식세포가 만들어지나요?<br>
+          ③ 잡종끼리 교배하면 자손에서 어떤 색의 완두가 나올 수 있을까요? 여러 번 수정해 보며 확인해 보세요.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
   <footer>
     중학교 3학년 과학 「5-2-1 멘델이 밝힌 유전 원리(1)」 교과서 연계 시뮬레이션
   </footer>
@@ -1390,22 +1636,10 @@ header { border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
    전역 탭 전환
    ------------------------------------------------------------ */
 function switchTab(tabId) {
-  const btnPure = document.getElementById('main-tab-pure');
-  const btnCross = document.getElementById('main-tab-cross');
-  const panePure = document.getElementById('pane-pure');
-  const paneCross = document.getElementById('pane-cross');
-
-  if (tabId === 'pure') {
-    btnPure.classList.add('active');
-    btnCross.classList.remove('active');
-    panePure.style.display = 'block';
-    paneCross.style.display = 'none';
-  } else {
-    btnPure.classList.remove('active');
-    btnCross.classList.add('active');
-    panePure.style.display = 'none';
-    paneCross.style.display = 'block';
-  }
+  ['pure', 'cross', 'chromo'].forEach(id => {
+    document.getElementById(`main-tab-${id}`).classList.toggle('active', id === tabId);
+    document.getElementById(`pane-${id}`).style.display = id === tabId ? 'block' : 'none';
+  });
 }
 
 /* ------------------------------------------------------------
@@ -2084,6 +2318,368 @@ function toggleSummaryAccordion() {
     icon.textContent = '▲';
   }
 }
+
+
+/* ------------------------------------------------------------
+   탭 ③: 염색체로 보는 순종과 잡종
+   - 부모 세포: 상동 염색체 1쌍, 각 염색체의 유전자를 노랑(Y)/초록(y) 중 선택
+   - 생식세포 분열: 과정은 생략하고 결과만 — 상동 염색체가 1개씩 들어간 생식세포 2개
+   - 수정: 부모 ①·② 생식세포 1개씩 → 자손의 세포
+   ------------------------------------------------------------ */
+const SVGNS = 'http://www.w3.org/2000/svg';
+const GENE_NAME = { Y: '노랑', y: '초록' };
+// 생식세포 k(0~1)의 위치와, 그 안에 들어가는 상동 염색체(h)
+const GAMETES = [
+  { x: 105, y: 135, h: 0 },
+  { x: 295, y: 135, h: 1 }
+];
+const MEIOSIS_BTN = ['✂️ 생식세포 분열 ▶', '분열 완료 ✓'];
+const MEIOSIS_CAPTION = [
+  '상동 염색체의 같은 위치에는 완두 색을 정하는 유전자가 있어요. 두 유전자가 <b>같으면 순종</b>, <b>다르면 잡종</b>입니다.',
+  '생식세포 분열 결과, <b>상동 염색체가 1개씩</b> 나뉘어 들어간 <b>생식세포</b>가 만들어졌어요.'
+];
+
+let chromoState;
+
+function chromoInitState() {
+  chromoState = {
+    parents: [['Y', 'Y'], ['y', 'y']],
+    phase: 0,
+    selected: [null, null],
+    fused: false,
+    record: []
+  };
+}
+
+function svgEl(tag, attrs, parent) {
+  const el = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(el);
+  return el;
+}
+
+function place(el, x, y, scale = 1, opacity = 1) {
+  el.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+  el.style.opacity = opacity;
+}
+
+// 원점 중심의 염색 분체(막대 + 유전자 띠) 그리기
+function drawChromatid(parent, allele) {
+  svgEl('rect', { x: -10, y: -50, width: 20, height: 100, rx: 10, class: 'chromatid-body' }, parent);
+  svgEl('rect', { x: -10, y: -31, width: 20, height: 24, class: `gene-band ${allele}`, 'data-band': 1 }, parent);
+  const t = svgEl('text', { x: 0, y: -19, class: `gene-text ${allele}`, 'data-text': 1 }, parent);
+  t.textContent = allele;
+}
+
+function setChromatidAllele(g, allele) {
+  g.querySelector('[data-band]').setAttribute('class', `gene-band ${allele}`);
+  const t = g.querySelector('[data-text]');
+  t.setAttribute('class', `gene-text ${allele}`);
+  t.textContent = allele;
+}
+
+function genotype(a) {
+  return [...a].sort().join(''); // 'YY' | 'Yy' | 'yy' (대문자가 앞)
+}
+
+function describeAlleles(a) {
+  const pure = a[0] === a[1];
+  const yellow = a.includes('Y');
+  return {
+    pure,
+    yellow,
+    genes: `${GENE_NAME[a[0]]} + ${GENE_NAME[a[1]]}`,
+    letters: genotype(a),
+    look: yellow ? '노란색 완두' : '초록색 완두'
+  };
+}
+
+/* ---------- 부모 카드 만들기 ---------- */
+function buildParentCard(p) {
+  const card = document.getElementById(`parent-card-${p}`);
+  card.innerHTML = `
+    <div class="parent-head">
+      <h3 class="parent-title">부모 ${p === 0 ? '①' : '②'}의 세포</h3>
+      <span class="purity-tag" id="purity-tag-${p}"></span>
+    </div>
+    <svg class="cell-svg" id="cell-svg-${p}" viewBox="0 0 400 270"></svg>
+    <div id="allele-area-${p}"></div>
+    <div class="parent-info" id="parent-info-${p}"></div>
+  `;
+  const svg = document.getElementById(`cell-svg-${p}`);
+
+  // 세포막: 부모 세포 1개 → 생식세포 2개
+  const big = svgEl('g', { id: `p${p}-big`, class: 'anim' }, svg);
+  svgEl('ellipse', { rx: 170, ry: 115, class: 'cell-mem' }, big);
+  GAMETES.forEach((_, k) => {
+    const gam = svgEl('g', { id: `p${p}-gam${k}`, class: 'anim' }, svg);
+    svgEl('circle', { r: 86, class: 'cell-mem' }, gam);
+  });
+
+  // 상동 염색체 2개
+  [0, 1].forEach(h => {
+    const ch = svgEl('g', { id: `p${p}-ch${h}`, class: 'anim' }, svg);
+    drawChromatid(ch, chromoState.parents[p][h]);
+    ch.addEventListener('click', () => toggleAllele(p, h));
+  });
+
+  // 생식세포 고르기 영역 (분열 후에만 표시)
+  GAMETES.forEach((g, k) => {
+    const slot = svgEl('g', { id: `p${p}-slot${k}`, class: 'gamete-slot' }, svg);
+    svgEl('circle', { cx: g.x, cy: g.y, r: 89, class: 'gamete-ring' }, slot);
+    svgEl('circle', { cx: g.x, cy: g.y, r: 86, class: 'gamete-hit' }, slot);
+    slot.addEventListener('click', () => selectGamete(p, k));
+  });
+}
+
+/* ---------- 단계별 배치 ---------- */
+function layoutParent(p) {
+  const ph = chromoState.phase;
+  const $ = id => document.getElementById(`p${p}-${id}`);
+
+  place($('big'), 200, 135, ph ? 1.04 : 1, ph ? 0 : 1);
+  GAMETES.forEach((g, k) => {
+    place($(`gam${k}`), ph ? g.x : 200, g.y, ph ? 1 : 0.6, ph ? 1 : 0);
+    $(`slot${k}`).style.display = ph ? '' : 'none';
+    $(`slot${k}`).classList.toggle('selected', chromoState.selected[p] === k);
+  });
+  [0, 1].forEach(h => {
+    const el = $(`ch${h}`);
+    place(el, ph ? GAMETES[h].x : (h === 0 ? 165 : 235), 135, 1, 1);
+    el.style.cursor = ph ? 'default' : 'pointer';
+    el.style.pointerEvents = ph ? 'none' : '';
+  });
+}
+
+function renderParentInfo(p) {
+  const a = chromoState.parents[p];
+  const d = describeAlleles(a);
+
+  const tag = document.getElementById(`purity-tag-${p}`);
+  tag.textContent = d.pure ? '순종' : '잡종';
+  tag.className = `purity-tag ${d.pure ? 'pure' : 'hybrid'}`;
+
+  document.getElementById(`parent-info-${p}`).innerHTML = `
+    <div class="pea-seed ${d.yellow ? 'yellow' : 'green'}" style="flex-shrink:0"></div>
+    <div>
+      유전자: <b>${d.genes}</b> <span class="gene-letter">(${d.letters})</span> → <b>${d.pure ? '순종' : '잡종'}</b><br>
+      겉모습: <b>${d.look}</b>${d.pure ? '' : ' <span style="color:var(--ink-soft)">(노랑이 우성)</span>'}
+    </div>
+  `;
+
+  const area = document.getElementById(`allele-area-${p}`);
+  if (chromoState.phase === 0) {
+    area.innerHTML = `<div class="allele-picker">${[0, 1].map(h => `
+      <div class="allele-col">
+        <span class="allele-col-label">${h === 0 ? '왼쪽' : '오른쪽'} 염색체의 유전자</span>
+        <div class="allele-btns">
+          <button class="secondary pick-Y ${a[h] === 'Y' ? 'on' : ''}" onclick="setAllele(${p}, ${h}, 'Y')">노랑<span class="gene-letter">&nbsp;Y</span></button>
+          <button class="secondary pick-y ${a[h] === 'y' ? 'on' : ''}" onclick="setAllele(${p}, ${h}, 'y')">초록<span class="gene-letter">&nbsp;y</span></button>
+        </div>
+      </div>`).join('')}</div>`;
+  } else {
+    const kinds = d.pure ? `두 생식세포의 유전자가 <b>같아요</b> (${GENE_NAME[a[0]]})` : `두 생식세포의 유전자가 <b>달라요</b> (노랑, 초록)`;
+    area.innerHTML = `<div class="allele-lock-msg">${kinds}. <b>하나를 눌러 고르세요.</b></div>`;
+  }
+}
+
+function setAllele(p, h, allele) {
+  if (chromoState.phase !== 0) return;
+  chromoState.parents[p][h] = allele;
+  setChromatidAllele(document.getElementById(`p${p}-ch${h}`), allele);
+  renderParentInfo(p);
+}
+
+function toggleAllele(p, h) {
+  setAllele(p, h, chromoState.parents[p][h] === 'Y' ? 'y' : 'Y');
+}
+
+/* ---------- 생식세포 분열 ---------- */
+function advanceMeiosis() {
+  if (chromoState.phase >= 1) return;
+  chromoState.phase++;
+  renderChromo();
+}
+
+/* ---------- 수정 ---------- */
+let fertTimer = null;
+
+function selectGamete(p, k) {
+  if (chromoState.phase !== 1) return;
+  if (chromoState.fused) resetFertilization(); // 수정 후 다시 누르면 새로 고르기 시작
+  chromoState.selected[p] = k;
+  renderChromo();
+  scheduleFertilize();
+}
+
+function pickRandomGametes() {
+  if (chromoState.fused) resetFertilization();
+  chromoState.selected = [Math.floor(Math.random() * 2), Math.floor(Math.random() * 2)];
+  renderChromo();
+  scheduleFertilize();
+}
+
+// 두 생식세포가 모두 골라지면 잠깐 보여 준 뒤 바로 수정
+function scheduleFertilize() {
+  clearTimeout(fertTimer);
+  if (chromoState.selected.includes(null)) return;
+  fertTimer = setTimeout(fertilize, 600);
+}
+
+function gameteAllele(p) {
+  const k = chromoState.selected[p];
+  return k === null ? null : chromoState.parents[p][GAMETES[k].h];
+}
+
+function buildFertScene() {
+  const svg = document.getElementById('fert-svg');
+  svg.innerHTML = '';
+  [[120, '부모 ①의 생식세포'], [520, '부모 ②의 생식세포']].forEach(([x, label], i) => {
+    const t = svgEl('text', { x, y: 26, class: 'fert-label anim', id: `fert-lab${i}` }, svg);
+    t.textContent = label;
+    const ph = svgEl('g', { id: `fert-ph${i}`, class: 'anim' }, svg);
+    svgEl('circle', { cx: x, cy: 145, r: 70, fill: 'none', stroke: '#9AA3B5', 'stroke-width': 2.5, 'stroke-dasharray': '7 6' }, ph);
+    const q = svgEl('text', { x, y: 145, class: 'fert-label', 'dominant-baseline': 'central', style: 'font-size:34px' }, ph);
+    q.textContent = '?';
+  });
+  const plus = svgEl('text', { x: 320, y: 145, class: 'fert-label anim', id: 'fert-plus', 'dominant-baseline': 'central', style: 'font-size:44px' }, svg);
+  plus.textContent = '+';
+  const zl = svgEl('text', { x: 320, y: 266, class: 'fert-label anim', id: 'fert-zlab', style: 'fill:var(--accent)' }, svg);
+  zl.textContent = '자손의 세포 (수정란)';
+
+  const zy = svgEl('g', { id: 'fert-zy', class: 'anim' }, svg);
+  svgEl('ellipse', { rx: 125, ry: 105, class: 'cell-mem', style: 'stroke-width:3.5' }, zy);
+  [0, 1].forEach(i => {
+    const g = svgEl('g', { id: `fert-g${i}`, class: 'anim' }, svg);
+    svgEl('circle', { r: 70, class: 'cell-mem' }, g);
+  });
+  [0, 1].forEach(i => {
+    const c = svgEl('g', { id: `fert-c${i}`, class: 'anim' }, svg);
+    drawChromatid(c, 'Y');
+  });
+}
+
+function layoutFert() {
+  const fused = chromoState.fused;
+  const $ = id => document.getElementById(`fert-${id}`);
+  [0, 1].forEach(i => {
+    const a = gameteAllele(i);
+    const x = i === 0 ? 120 : 520;
+    $(`ph${i}`).style.opacity = a ? 0 : 1;
+    if (a) setChromatidAllele($(`c${i}`), a);
+    if (fused) {
+      place($(`g${i}`), 320, 145, 0.8, 0);
+      place($(`c${i}`), i === 0 ? 296 : 344, 145, 1.15, 1);
+    } else {
+      place($(`g${i}`), x, 145, 1, a ? 1 : 0);
+      place($(`c${i}`), x, 145, 0.9, a ? 1 : 0);
+    }
+    $(`lab${i}`).style.opacity = fused ? 0.35 : 1;
+  });
+  place($('zy'), 320, 145, fused ? 1 : 0.4, fused ? 1 : 0);
+  $('plus').style.opacity = fused ? 0 : 1;
+  $('zlab').style.opacity = fused ? 1 : 0;
+}
+
+function fertilize() {
+  if (chromoState.selected.includes(null) || chromoState.fused) return;
+  chromoState.fused = true;
+  const a = [gameteAllele(0), gameteAllele(1)];
+  chromoState.record.push(genotype(a));
+  renderChromo();
+
+  const d = describeAlleles(a);
+  const res = document.getElementById('offspring-result');
+  res.classList.remove('active');
+  setTimeout(() => {
+    if (!chromoState.fused) return;
+    document.getElementById('offspring-seed').className = `pea-seed ${d.yellow ? 'yellow' : 'green'}`;
+    document.getElementById('offspring-text').innerHTML = `
+      자손의 세포에는 부모 ①에게서 온 염색체(<b>${GENE_NAME[a[0]]}</b>)와 부모 ②에게서 온 염색체(<b>${GENE_NAME[a[1]]}</b>)가
+      다시 <b>상동 염색체 한 쌍</b>을 이룹니다.<br>
+      유전자: <b>${d.genes}</b> <span class="gene-letter">(${d.letters})</span> → <b style="color:${d.pure ? 'var(--accent)' : 'var(--warn)'}">${d.pure ? '순종' : '잡종'}</b>
+      &nbsp;·&nbsp; 겉모습: <b>${d.look}</b>
+    `;
+    res.classList.add('active');
+  }, 950);
+}
+
+function resetFertilization() {
+  clearTimeout(fertTimer);
+  chromoState.selected = [null, null];
+  chromoState.fused = false;
+  document.getElementById('offspring-result').classList.remove('active');
+  renderChromo();
+}
+
+function renderRecord() {
+  const box = document.getElementById('offspring-record');
+  const rec = chromoState.record;
+  box.classList.toggle('active', rec.length > 0);
+  document.getElementById('record-seeds').innerHTML = rec.map(g =>
+    `<div class="pea-seed small ${g.includes('Y') ? 'yellow' : 'green'}" title="${g}"></div>`).join('');
+  const n = t => rec.filter(g => g === t).length;
+  const yellow = n('YY') + n('Yy');
+  document.getElementById('record-summary').innerHTML =
+    `순종 노랑 <span class="gene-letter">(YY)</span> ${n('YY')}개 · 잡종 노랑 <span class="gene-letter">(Yy)</span> ${n('Yy')}개 · 순종 초록 <span class="gene-letter">(yy)</span> ${n('yy')}개
+     &nbsp;→&nbsp; 노란색 ${yellow}개 : 초록색 ${n('yy')}개`;
+}
+
+/* ---------- 전체 갱신 ---------- */
+function renderChromo() {
+  const ph = chromoState.phase;
+  [0, 1].forEach(p => { layoutParent(p); renderParentInfo(p); });
+
+  const btn = document.getElementById('btn-meiosis');
+  btn.textContent = MEIOSIS_BTN[ph];
+  btn.disabled = ph >= 1;
+  document.getElementById('meiosis-caption').innerHTML = MEIOSIS_CAPTION[ph];
+
+  const guide = document.getElementById('chromo-guide-msg');
+  if (ph === 0) guide.innerHTML = '🧬 <b>1단계:</b> 버튼이나 염색체를 눌러 각 염색체의 유전자를 노랑·초록 중에서 고르세요.';
+  else if (!chromoState.fused) guide.innerHTML = '💞 <b>3단계:</b> 두 부모의 생식세포를 하나씩 골라 수정시켜 보세요.';
+  else guide.innerHTML = '🎉 <b>자손의 세포</b>가 만들어졌어요! 다른 생식세포로도 수정해 보세요.';
+
+  const stepNow = ph === 0 ? 1 : 3;
+  for (let s = 1; s <= 3; s++) {
+    document.getElementById(`chromo-nav-${s}`).className =
+      'stepper-item' + (s === stepNow ? ' active' : s < stepNow ? ' done' : '');
+  }
+
+  document.getElementById('fert-stage').classList.toggle('active', ph === 1);
+  layoutFert();
+  const ready = !chromoState.selected.includes(null);
+  document.getElementById('btn-fert-again').style.display = chromoState.fused ? '' : 'none';
+  document.getElementById('fert-guide').innerHTML = chromoState.fused
+    ? '두 생식세포가 합쳐져 <b>자손의 세포</b>가 되었어요. 위에서 생식세포를 다시 누르면 새로 수정할 수 있어요.'
+    : ready
+      ? '💞 수정 중…'
+      : '위에서 <b>부모 ①과 부모 ②의 생식세포를 하나씩</b> 눌러 고르거나, [무작위로 고르기]를 누르세요.';
+  renderRecord();
+}
+
+function toggleGeneLetters(on) {
+  document.getElementById('pane-chromo').classList.toggle('show-letters', on);
+}
+
+function resetChromoTab() {
+  clearTimeout(fertTimer);
+  const keepParents = chromoState ? chromoState.parents.map(a => [...a]) : null;
+  chromoInitState();
+  if (keepParents) chromoState.parents = keepParents;
+  document.getElementById('offspring-result').classList.remove('active');
+  [0, 1].forEach(buildParentCard);
+  buildFertScene();
+  // 처음 배치는 애니메이션 없이
+  document.querySelectorAll('#pane-chromo .anim').forEach(el => el.style.transition = 'none');
+  renderChromo();
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.querySelectorAll('#pane-chromo .anim').forEach(el => el.style.transition = '');
+  }));
+}
+
+// 탭 ③ 초기 실행
+resetChromoTab();
 </script>
 
 </body>
