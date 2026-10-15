@@ -1243,6 +1243,8 @@ header { border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
           <p class="lab-guide-text" id="chromo-guide-msg"></p>
           <div class="chromo-tools">
             <label class="letter-toggle"><input type="checkbox" id="chromo-letter-toggle" onchange="toggleGeneLetters(this.checked)"> 유전자 기호(Y, y) 보기</label>
+            <button class="accent" id="btn-meiosis" onclick="advanceMeiosis()">✂️ 생식세포 분열 ▶</button>
+            <button class="secondary" id="btn-fert-random" onclick="pickRandomGametes()" disabled>🎲 무작위로 고르기</button>
             <button class="secondary" onclick="resetChromoTab()">처음부터 다시 ↺</button>
           </div>
         </div>
@@ -1254,16 +1256,14 @@ header { border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
         </div>
 
         <div class="meiosis-bar">
-          <button class="large accent" id="btn-meiosis" onclick="advanceMeiosis()">✂️ 생식세포 분열 ▶</button>
           <p class="meiosis-caption" id="meiosis-caption"></p>
         </div>
 
         <div class="fert-stage" id="fert-stage">
           <h3 class="fert-title">💞 수정: 두 부모의 생식세포가 만나 자손의 세포가 돼요</h3>
-          <p class="stage-instruction" id="fert-guide">위에서 <b>부모 ①과 부모 ②의 생식세포를 하나씩</b> 눌러 고르거나, [무작위로 고르기]를 누르세요.</p>
+          <p class="stage-instruction" id="fert-guide">위에서 <b>부모 ①과 부모 ②의 생식세포를 하나씩</b> 눌러 고르거나, 위의 [무작위로 고르기]를 누르세요.</p>
           <svg class="fert-svg" id="fert-svg" viewBox="0 0 640 270"></svg>
           <div class="fert-btns">
-            <button class="large secondary" id="btn-fert-random" onclick="pickRandomGametes()">🎲 무작위로 고르기</button>
             <button class="large secondary" id="btn-fert-again" onclick="resetFertilization()" style="display:none;">다른 생식세포로 다시 ↺</button>
           </div>
           <div class="offspring-result" id="offspring-result">
@@ -2139,12 +2139,13 @@ function renderChromo() {
   document.getElementById('fert-stage').classList.toggle('active', ph === 1);
   layoutFert();
   const ready = !chromoState.selected.includes(null);
+  document.getElementById('btn-fert-random').disabled = ph < 1;   // 생식세포가 생긴 뒤에만
   document.getElementById('btn-fert-again').style.display = chromoState.fused ? '' : 'none';
   document.getElementById('fert-guide').innerHTML = chromoState.fused
     ? '두 생식세포가 합쳐져 <b>자손의 세포</b>가 되었어요. 위에서 생식세포를 다시 누르면 새로 수정할 수 있어요.'
     : ready
       ? '💞 수정 중…'
-      : '위에서 <b>부모 ①과 부모 ②의 생식세포를 하나씩</b> 눌러 고르거나, [무작위로 고르기]를 누르세요.';
+      : '위에서 <b>부모 ①과 부모 ②의 생식세포를 하나씩</b> 눌러 고르거나, 위의 [무작위로 고르기]를 누르세요.';
   renderRecord();
 }
 
