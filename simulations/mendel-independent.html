@@ -225,9 +225,6 @@ button.large { font-size: 15px; padding: 12px 22px; border-radius: 11px; }
 .gamete-mem { fill: #FFF7EC; stroke: #D9A86C; stroke-width: 3; transition: stroke .3s; }
 .gamete-mem.chosen { stroke: var(--warn); stroke-width: 4.5; }
 .fert-tag { fill: #FDECE8; stroke: var(--warn); stroke-width: 1.5; }
-.plate-line { stroke: #9AA3B5; stroke-width: 2; stroke-dasharray: 5 5; }
-.arr-pill { fill: var(--warn); }
-.arr-pill-text { fill: #fff; font-family: 'Pretendard', sans-serif; font-weight: 900; font-size: 15px; text-anchor: middle; }
 
 .flow-bar {
   display: flex;
@@ -708,7 +705,7 @@ footer { margin-top: 40px; font-size: 12px; color: var(--ink-soft); text-align: 
         <div class="stepper-item" id="flow-nav-1"><span class="stepper-badge">1단계</span><span>어버이 생식세포 분열</span></div>
         <div class="stepper-item" id="flow-nav-2"><span class="stepper-badge">2단계</span><span>수정 → 자손 1대</span></div>
         <div class="stepper-item" id="flow-nav-3"><span class="stepper-badge">3단계</span><span>자손 1대 생식세포 4가지</span></div>
-        <div class="stepper-item" id="flow-nav-4"><span class="stepper-badge">4단계</span><span>자손 2대 (퍼네트 사각형)</span></div>
+        <div class="stepper-item" id="flow-nav-4"><span class="stepper-badge">4단계</span><span>자가 수분 → 자손 2대</span></div>
       </div>
 
       <div class="lab-stage">
@@ -725,7 +722,7 @@ footer { margin-top: 40px; font-size: 12px; color: var(--ink-soft); text-align: 
           <p class="flow-caption" id="flow-caption"></p>
         </div>
 
-        <svg class="flow-svg" id="flow-svg" viewBox="0 0 1000 1050"></svg>
+        <svg class="flow-svg" id="flow-svg" viewBox="0 0 1000 1070"></svg>
 
         <div class="gen2-band" id="gen2-band">
           <div class="gen2-pill">자손 2대</div>
@@ -768,7 +765,7 @@ footer { margin-top: 40px; font-size: 12px; color: var(--ink-soft); text-align: 
         <h4>💡 생각해 보기</h4>
         <p>
           ① 자손 2대에서 씨의 <b>모양만</b> 보면 둥근 것과 주름진 것의 비는 얼마일까요? <b>색깔만</b> 보면 어떨까요? 이 결과로 무엇을 알 수 있을까요?<br>
-          ② 자손 1대(RrYy)가 4가지 생식세포(RY, Ry, rY, ry)를 <b>같은 비율</b>로 만드는 까닭을 3단계의 '배열 ①·②'를 보며 <b>상동 염색체</b>와 관련지어 설명해 보세요.
+          ② 자손 1대(RrYy)가 4가지 생식세포(RY, Ry, rY, ry)를 <b>같은 비율</b>로 만드는 까닭을 <b>상동 염색체</b>와 관련지어 설명해 보세요.
         </p>
       </div>
 
@@ -784,7 +781,7 @@ footer { margin-top: 40px; font-size: 12px; color: var(--ink-soft); text-align: 
             </div>
             <div class="concept-item">
               <h4 class="concept-item-title">🧬 생식세포 4가지가 1 : 1 : 1 : 1인 까닭</h4>
-              <p class="concept-item-body">R와 r, Y와 y는 각각 감수 분열에서 <b>분리</b>된다. 이때 R가 Y와 함께 갈지 y와 함께 갈지는 서로 상관없어서(배열 ①·② 확률이 같음) <b>RY : Ry : rY : ry = 1 : 1 : 1 : 1</b>.</p>
+              <p class="concept-item-body">R와 r, Y와 y는 각각 감수 분열에서 <b>분리</b>된다. 이때 R가 Y와 함께 갈지 y와 함께 갈지는 서로 영향을 주지 않아서 <b>RY : Ry : rY : ry = 1 : 1 : 1 : 1</b>.</p>
             </div>
             <div class="concept-item">
               <h4 class="concept-item-title">📊 자손 2대의 비</h4>
@@ -1084,43 +1081,47 @@ function miniGameteSVG(gam) {
 /* ------------------------------------------------------------
    활동 ①: 어버이 → 자손 1대 → 자손 2대
    phase 0 어버이 / 1 어버이 생식세포 분열 / 2 수정 → 자손 1대
-         3 자손 1대 생식세포 4가지(배열 ①·②) / 4 자손 2대(퍼네트 사각형)
+         3 자손 1대 생식세포 4가지 / 4 자가 수분 → 자손 2대(퍼네트 사각형)
    ------------------------------------------------------------ */
 const P = {
   p1: { x: 360, y: 105 }, p2: { x: 770, y: 105 },
   p1g: [{ x: 300, y: 305 }, { x: 420, y: 305 }],
   p2g: [{ x: 710, y: 305 }, { x: 830, y: 305 }],
   f1: { x: 565, y: 500 },
-  // 자손 1대의 세포 2개 — 감수 1분열에서 상동 염색체가 늘어서는 두 가지 방법
-  f1c: [{ x: 360, y: 700 }, { x: 770, y: 700 }],
-  f1g: [[{ x: 300, y: 895 }, { x: 420, y: 895 }], [{ x: 710, y: 895 }, { x: 830, y: 895 }]]
+  // 자손 1대 생식세포 4가지
+  g4: [{ x: 317, y: 705 }, { x: 482, y: 705 }, { x: 648, y: 705 }, { x: 813, y: 705 }],
+  // 자가 수분: 왼쪽 4가지 / 오른쪽 4가지
+  self: [
+    [{ x: 190, y: 968 }, { x: 280, y: 968 }, { x: 370, y: 968 }, { x: 460, y: 968 }],
+    [{ x: 670, y: 968 }, { x: 760, y: 968 }, { x: 850, y: 968 }, { x: 940, y: 968 }]
+  ]
 };
-const SLOT = [-62, -26, 26, 62];   // 세포 안 염색체 자리 (긴 것은 바깥, 짧은 것은 안쪽)
-const GX = { long: -17, short: 17 }; // 생식세포 안 자리
-const CELL_S = 0.85, GAM_S = 0.75;
-const SPLIT_DELAY = '0.8s';
-const ARR = [['R', 'Y', 'y', 'r'], ['R', 'y', 'Y', 'r']]; // 배열 ① / ②
-const F1_GAMETES = [['RY', 'ry'], ['Ry', 'rY']];
+// 세포 안 염색체 자리 — 상동 염색체끼리 나란히: 긴 것(모양) 한 쌍 왼쪽, 짧은 것(색깔) 한 쌍 오른쪽
+const SLOT = [-66, -34, 34, 66];
+const GX = { long: -17, short: 17 };     // 생식세포 안 자리
+const SX = { long: -13, short: 13 };     // 작은 생식세포 안 자리
+const CELL_S = 0.85, GAM_S = 0.75, SMALL_S = 0.55;
+const G4 = ['RY', 'Ry', 'rY', 'ry'];
 
 const FLOW_NEXT = [
   '✂️ 어버이 생식세포 분열 ▶',
   '💞 수정 → 자손 1대 ▶',
   '✂️ 자손 1대 생식세포 분열 ▶',
-  '🌱 수정 → 자손 2대 ▶',
+  '🌱 자가 수분 → 자손 2대 ▶',
   '끝 ✓'
 ];
 const FLOW_CAPTION = [
-  '<b>어버이</b>: 둥글고 노란색 순종(RRYY)과 주름지고 초록색 순종(rryy). 긴 염색체에는 씨 <b>모양</b>(R, r), 짧은 염색체에는 씨 <b>색깔</b>(Y, y)을 결정하는 대립유전자가 있어요.',
+  '<b>어버이</b>: 둥글고 노란색 순종(RRYY)과 주름지고 초록색 순종(rryy). 긴 상동 염색체 한 쌍에는 씨 <b>모양</b>(R, r), 짧은 상동 염색체 한 쌍에는 씨 <b>색깔</b>(Y, y)을 결정하는 대립유전자가 있어요.',
   '감수 분열에서 상동 염색체가 분리되면서 대립유전자도 분리돼요. RRYY에서는 <b>RY</b>, rryy에서는 <b>ry</b>를 지닌 생식세포만 만들어져요.',
   'RY와 ry 생식세포가 <b>수정</b>되어 자손 1대는 <b>RrYy</b>가 돼요. R와 Y가 우성이라 자손 1대는 <b>모두 둥글고 노란색</b>이에요.',
-  '자손 1대의 감수 분열에서 상동 염색체가 늘어서는 방법은 <b>배열 ①</b>과 <b>배열 ②</b> 두 가지이고, 확률이 같아요. R는 Y와도, y와도 함께 갈 수 있어서 생식세포 <b>RY, Ry, rY, ry</b>가 <b>1 : 1 : 1 : 1</b>로 만들어져요.',
-  '자손 1대를 <b>자가 수분</b>하면 4가지 생식세포끼리 수정돼요. 아래 <b>퍼네트 사각형</b>의 빈칸(4 × 4 = 16칸)을 눌러 자손 2대를 확인해 보세요.'
+  '자손 1대(RrYy)의 감수 분열에서 R와 r, Y와 y가 <b>각각 분리</b>돼요. R는 Y와도, y와도 함께 들어갈 수 있어서 생식세포 <b>RY, Ry, rY, ry</b> 4가지가 <b>1 : 1 : 1 : 1</b>로 만들어져요.',
+  '자손 1대를 <b>자가 수분</b>하면 한 개체에서 만들어진 생식세포 4가지(왼쪽)와 4가지(오른쪽)가 수정돼요. 아래 <b>퍼네트 사각형</b>의 빈칸(4 × 4 = 16칸)을 눌러 자손 2대를 확인해 보세요.'
 ];
 const FLOW_GUIDE = [
   '🧬 완두씨의 모양과 색깔은 어떻게 동시에 유전될까요? [어버이 생식세포 분열]을 눌러 보세요.',
   '✂️ 어버이의 생식세포가 만들어졌어요. 이제 두 생식세포를 수정시켜 보세요.',
   '💞 자손 1대가 만들어졌어요. 자손 1대는 어떤 생식세포를 만들까요?',
-  '✂️ 자손 1대에서는 유전자 구성이 다른 생식세포 4가지가 만들어졌어요!',
+  '✂️ 자손 1대에서는 유전자 구성이 다른 생식세포 4가지가 만들어졌어요! 이제 자가 수분해 볼까요?',
   '🌱 자손 2대: 퍼네트 사각형의 빈칸을 눌러 채워 보세요.'
 ];
 
@@ -1137,7 +1138,7 @@ function buildFlow() {
   // 세대 띠
   const bands = [
     { y: 10, h: 368, name: '어버이', sub: '부모 세대' },
-    { y: 390, h: 650, name: '자손 1대', sub: '' }
+    { y: 390, h: 670, name: '자손 1대', sub: '' }
   ];
   bands.forEach(b => {
     svgEl('rect', { x: 10, y: b.y, width: 980, height: b.h, rx: 16, class: 'band-bg' }, svg);
@@ -1146,7 +1147,6 @@ function buildFlow() {
     if (b.sub) svgText(svg, 74, b.y + 60, b.sub, 'band-pill-sub');
   });
   svgText(svg, 74, 310, '생식세포', 'row-label');
-  svgText(svg, 74, 900, '생식세포', 'row-label');
 
   const group = (phase, delay = '0s') => {
     const g = svgEl('g', { class: 'fade' }, svg);
@@ -1157,7 +1157,7 @@ function buildFlow() {
 
   // --- 어버이 세포 (항상 보임)
   const pa = svgEl('g', {}, svg);
-  [[P.p1, ['R', 'Y', 'Y', 'R']], [P.p2, ['r', 'y', 'y', 'r']]].forEach(([c, al]) => {
+  [[P.p1, ['R', 'R', 'Y', 'Y']], [P.p2, ['r', 'r', 'y', 'y']]].forEach(([c, al]) => {
     cell(pa, c);
     al.forEach((a, k) => chromoAt(pa, a, c.x + SLOT[k], c.y, CELL_S));
   });
@@ -1193,32 +1193,31 @@ function buildFlow() {
   svgText(g2, 764, 498, '잡종 (RrYy)', 'svg-label acc', { style: 'font-size:15px' });
   svgText(g2, 727, 530, '모두 둥글고 노란색', 'svg-label soft');
 
-  // --- phase 3: 자손 1대 세포 2개 — 배열 ① / ②
+  // --- phase 3: 자손 1대 → 생식세포 4가지 (화살표 4개)
   const g3 = group(3);
-  P.f1c.forEach((c, i) => {
-    const dir = Math.sign(c.x - P.f1.x);
-    svgEl('line', { x1: P.f1.x + dir * 60, y1: P.f1.y + 62, x2: c.x - dir * 70, y2: c.y - 64, class: 'flow-arrow', 'marker-end': 'url(#arrowHead)' }, g3);
-    cell(g3, c);
-    svgEl('line', { x1: c.x, y1: c.y - 62, x2: c.x, y2: c.y + 62, class: 'plate-line' }, g3);
-    const px = i === 0 ? 192 : 938;
-    svgEl('rect', { x: px - 46, y: c.y - 18, width: 92, height: 34, rx: 17, class: 'arr-pill' }, g3);
-    svgText(g3, px, c.y + 5, i === 0 ? '배열 ①' : '배열 ②', 'arr-pill-text');
+  P.g4.forEach((g, i) => {
+    const dx = g.x - P.f1.x;
+    const sx = P.f1.x + dx * 0.25;
+    const sy = P.f1.y + 72 * Math.sqrt(1 - Math.pow((sx - P.f1.x) / 108, 2)) + 6;
+    svgEl('line', { x1: sx, y1: sy, x2: g.x - dx * 0.1, y2: g.y - 58, class: 'flow-arrow', 'marker-end': 'url(#arrowHead)' }, g3);
+    svgEl('circle', { cx: g.x, cy: g.y, r: 52, class: 'gamete-mem' }, g3);
+    svgText(g3, g.x, g.y + 82, G4[i], 'svg-label gam', { 'text-anchor': 'middle' });
   });
-  svgText(g3, P.f1.x, 690, '배열 방법 2가지', 'svg-label', { 'text-anchor': 'middle', style: 'font-size:15px' });
-  svgText(g3, P.f1.x, 712, '확률은 같아요', 'svg-label soft', { 'text-anchor': 'middle' });
+  svgText(g3, 74, 710, '생식세포', 'row-label');
+  svgText(g3, 335, 612, '생식세포 분열', 'svg-label soft', { 'text-anchor': 'end' });
+  svgText(g3, P.f1.x, 838, 'RY : Ry : rY : ry = 1 : 1 : 1 : 1', 'svg-label ratio', { 'text-anchor': 'middle' });
 
-  const g3b = group(3, SPLIT_DELAY);
-  P.f1c.forEach((c, i) => {
-    P.f1g[i].forEach((g, k) => {
-      svgEl('line', { x1: c.x + (g.x - c.x) * 0.2, y1: c.y + 76, x2: g.x - (g.x - c.x) * 0.15, y2: g.y - 58, class: 'flow-arrow', 'marker-end': 'url(#arrowHead)' }, g3b);
-      svgEl('circle', { cx: g.x, cy: g.y, r: 52, class: 'gamete-mem' }, g3b);
-      svgText(g3b, g.x, g.y + 82, F1_GAMETES[i][k], 'svg-label gam', { 'text-anchor': 'middle' });
-    });
-    svgText(g3b, i === 0 ? c.x - 72 : c.x + 72, 817, '생식세포 분열', 'svg-label soft', { 'text-anchor': i === 0 ? 'end' : 'start' });
-  });
-  svgText(g3b, P.f1.x, 888, '유전자 구성이', 'svg-label', { 'text-anchor': 'middle', style: 'font-size:15px' });
-  svgText(g3b, P.f1.x, 910, '다른 4가지 생식세포', 'svg-label', { 'text-anchor': 'middle', style: 'font-size:15px' });
-  svgText(g3b, P.f1.x, 1018, 'RY : Ry : rY : ry = 1 : 1 : 1 : 1', 'svg-label ratio', { 'text-anchor': 'middle' });
+  // --- phase 4: 자가 수분 — 왼쪽 4가지 / 오른쪽 4가지
+  const g4 = group(4);
+  svgEl('line', { x1: 450, y1: 856, x2: 335, y2: 912, class: 'flow-arrow', 'marker-end': 'url(#arrowHead)' }, g4);
+  svgEl('line', { x1: 680, y1: 856, x2: 795, y2: 912, class: 'flow-arrow', 'marker-end': 'url(#arrowHead)' }, g4);
+  P.self.forEach(side => side.forEach((g, k) => {
+    svgEl('circle', { cx: g.x, cy: g.y, r: 40, class: 'gamete-mem' }, g4);
+    svgText(g4, g.x, g.y + 64, G4[k], 'svg-label', { 'text-anchor': 'middle', style: 'font-size:18px;font-weight:900' });
+  }));
+  svgEl('rect', { x: P.f1.x - 55, y: 950, width: 110, height: 36, rx: 18, fill: 'var(--accent)' }, g4);
+  svgText(g4, P.f1.x, 974, '자가 수분', 'svg-label', { 'text-anchor': 'middle', style: 'fill:#fff;font-size:16px' });
+  svgText(g4, 74, 973, '생식세포', 'row-label');
 
   // --- 움직이는 염색체
   const mover = (a, phase, from, to, delay = '0s') => {
@@ -1227,26 +1226,31 @@ function buildFlow() {
     movers.push({ el, phase, from, to, delay });
   };
   const gamX = (g, a) => g.x + (isLong(a) ? GX.long : GX.short);
-  // 어버이 → 생식세포: 왼쪽 생식세포는 자리 0·1, 오른쪽은 자리 2·3
-  [[P.p1, P.p1g, ['R', 'Y', 'Y', 'R']], [P.p2, P.p2g, ['r', 'y', 'y', 'r']]].forEach(([c, gs, al]) => {
+  const smallX = (g, a) => g.x + (isLong(a) ? SX.long : SX.short);
+  // 어버이 → 생식세포: 상동 염색체가 하나씩 나뉨 (왼쪽 생식세포는 자리 0·2, 오른쪽은 자리 1·3)
+  [[P.p1, P.p1g, ['R', 'R', 'Y', 'Y']], [P.p2, P.p2g, ['r', 'r', 'y', 'y']]].forEach(([c, gs, al]) => {
     al.forEach((a, k) => {
-      const g = gs[k < 2 ? 0 : 1];
+      const g = gs[k % 2];
       mover(a, 1, [c.x + SLOT[k], c.y, CELL_S], [gamX(g, a), g.y, GAM_S]);
     });
   });
-  // 생식세포 → 자손 1대 (R Y y r 자리)
-  [['R', P.p1g[1], 0], ['Y', P.p1g[1], 1], ['y', P.p2g[0], 2], ['r', P.p2g[0], 3]].forEach(([a, g, k]) => {
-    mover(a, 2, [gamX(g, a), g.y, GAM_S], [P.f1.x + SLOT[k], P.f1.y, CELL_S]);
+  // 생식세포 → 자손 1대 (R r Y y 자리)
+  const F1 = ['R', 'r', 'Y', 'y'];
+  [['R', P.p1g[1]], ['Y', P.p1g[1]], ['r', P.p2g[0]], ['y', P.p2g[0]]].forEach(([a, g]) => {
+    mover(a, 2, [gamX(g, a), g.y, GAM_S], [P.f1.x + SLOT[F1.indexOf(a)], P.f1.y, CELL_S]);
   });
-  // 자손 1대 → 세포 2개(배열 ①·②) → 각각 생식세포 2가지
-  const F1 = ['R', 'Y', 'y', 'r'];
-  P.f1c.forEach((c, i) => {
-    ARR[i].forEach((a, k) => {
-      mover(a, 3, [P.f1.x + SLOT[F1.indexOf(a)], P.f1.y, CELL_S], [c.x + SLOT[k], c.y, CELL_S]);
-      const g = P.f1g[i][k < 2 ? 0 : 1];
-      mover(a, 3, [c.x + SLOT[k], c.y, CELL_S], [gamX(g, a), g.y, GAM_S], SPLIT_DELAY);
+  // 자손 1대 → 생식세포 4가지
+  P.g4.forEach((g, i) => {
+    G4[i].split('').forEach(a => {
+      mover(a, 3, [P.f1.x + SLOT[F1.indexOf(a)], P.f1.y, CELL_S], [gamX(g, a), g.y, GAM_S]);
     });
   });
+  // 생식세포 4가지 → 자가 수분 왼쪽·오른쪽
+  P.self.forEach(side => side.forEach((g, k) => {
+    G4[k].split('').forEach(a => {
+      mover(a, 4, [gamX(P.g4[k], a), P.g4[k].y, GAM_S], [smallX(g, a), g.y, SMALL_S]);
+    });
+  }));
 }
 
 function layoutFlow() {
